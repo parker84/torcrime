@@ -56,6 +56,7 @@ fig = px.choropleth(df,
                     # labels={'unemp':'unemployment rate'}
                     # center={"lat":-79.391603880596435, "lon":43.680914175011935}
                     )
+fig.update_geos(showcountries=False, showcoastlines=False, showland=False, fitbounds="locations")
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.show()
 # fig.update_geos(fitbounds="locations", visible=False)
