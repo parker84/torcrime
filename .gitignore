@@ -90,3 +90,5 @@ target/
 
 /docs/personal/
 /crime_env/
+/src/visualization/rough/
+*.ipynb

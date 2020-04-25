@@ -43,16 +43,53 @@ CRIME_OPTIONS = [
 app.layout = html.Div(
     id="root",
     children=[
-        html.Div(
-            id="header",
-            children=[
-                # html.Img(id="logo", src=app.get_asset_url("dash-logo.png")),
-                html.H4(children="Crime Rates in Toronto"),
-                html.P(
-                    id="description",
-                    children="Estimating probability of crimes occurring by neighbourhood, year, and time of day",
+                html.Div(
+            [
+                html.Div(
+                    [
+                        html.Img(
+                            src=app.get_asset_url("dash-logo.png"),
+                            id="plotly-image",
+                            style={
+                                "height": "60px",
+                                "width": "auto",
+                                "margin-bottom": "25px",
+                            },
+                        )
+                    ],
+                    className="one-third column",
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                html.H3(
+                                    "Crime Rates in Toronto",
+                                    style={"margin-bottom": "0px"},
+                                ),
+                                html.H5(
+                                    "Estimating probability of crimes occurring by neighbourhood, year, day of week, premise type and time of day", style={"margin-top": "0px"}
+                                ),
+                            ]
+                        )
+                    ],
+                    className="one-half column",
+                    id="title",
+                ),
+                html.Div(
+                    [
+                        html.A(
+                            html.Button("Learn More", id="learn-more-button"),
+                            href="https://plot.ly/dash/pricing/",
+                        )
+                    ],
+                    className="one-third column",
+                    id="button",
                 ),
             ],
+            id="header",
+            className="row flex-display",
+            style={"margin-bottom": "25px"},
         ),
         html.Div(
             id="app-container",
