@@ -1,7 +1,7 @@
 project_name
 ==============================
 
-A short description of the project.
+Data gathered from here: http://data.torontopolice.on.ca/datasets/neighbourhood-crime-rates-boundary-file-
 
 Project Organization
 ------------

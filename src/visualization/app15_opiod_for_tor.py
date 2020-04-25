@@ -34,7 +34,9 @@ df = pd.read_csv("./data/raw/rates/Neighbourhood_Crime_Rates_Boundary_File_.csv"
                 dtype={"Hood_ID": str})
 
 YEARS = [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
-
+CRIME_OPTIONS = [
+    "Assault"
+]
 
 # App layout
 
@@ -44,14 +46,11 @@ app.layout = html.Div(
         html.Div(
             id="header",
             children=[
-                html.Img(id="logo", src=app.get_asset_url("dash-logo.png")),
-                html.H4(children="Rate of US Poison-Induced Deaths"),
+                # html.Img(id="logo", src=app.get_asset_url("dash-logo.png")),
+                html.H4(children="Crime Rates in Toronto"),
                 html.P(
                     id="description",
-                    children="† Deaths are classified using the International Classification of Diseases, \
-                    Tenth Revision (ICD–10). Drug-poisoning deaths are defined as having ICD–10 underlying \
-                    cause-of-death codes X40–X44 (unintentional), X60–X64 (suicide), X85 (homicide), or Y10–Y14 \
-                    (undetermined intent).",
+                    children="Estimating probability of crimes occurring by neighbourhood, year, and time of day",
                 ),
             ],
         ),
@@ -87,10 +86,8 @@ app.layout = html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
-                                    "Heatmap of age adjusted mortality rates \
-                            from poisonings in year {0}".format(
-                                        min(YEARS)
-                                    ),
+                                    f"Heatmap of estimated probability of {CRIME_OPTIONS[0]}\
+                            occuring in a given square foot of each neihbourhood in year {min(YEARS)}",
                                     id="heatmap-title",
                                 ),
                                 dcc.Graph(
@@ -104,6 +101,7 @@ app.layout = html.Div(
                                             hover_data=["Neighbourhood"],
                                             color_continuous_scale="Viridis",
                                             scope="north america",
+                                            # bgcolor='#f9f9f9'
                                         )
                                         .update_geos(showcountries=False, showcoastlines=False, showland=False, fitbounds="locations")
                                         .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
