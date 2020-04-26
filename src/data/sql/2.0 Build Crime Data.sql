@@ -10,7 +10,7 @@ select
     ,mci.occurrenceyear
     ,mci.premisetype
     ,mci.occurrencedayofweek
-    ,nbhd.sq_feet
+    ,nbhd.sq_metres
     ,nbhd.population
     ,nbhd.nbhd_id as nbhd_nbhd_id
 from stg.mci_data as mci

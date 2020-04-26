@@ -22,7 +22,7 @@ class TestCrimeData(unittest.TestCase):
     def test_nulls(self):
         assert self.nulls[
             ["nbhd_id", "neighbourhood", 
-            "crime_type", "sq_feet", "population"]
+            "crime_type", "sq_metres", "population"]
         ].sum() == 0, "you have nulls in crital cols"
         assert self.nulls[
             ["occurrencedayofweek", "premisetype", 
