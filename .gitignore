@@ -92,3 +92,4 @@ target/
 /crime_env/
 /src/visualization/rough/
 *.ipynb
+*.csv

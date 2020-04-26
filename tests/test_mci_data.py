@@ -8,12 +8,12 @@ engine = create_engine(config('ENGINE_PATH'))
 conn = engine.connect()
 
 
-class TestCrimeData(unittest.TestCase):
+class TestMCIData(unittest.TestCase):
 
     df = pd.read_sql(
             "select * from src.mci_data", 
             con=conn)
-    logger = init_logger("TestCrimeData")  
+    logger = init_logger("TestMCIData")  
     df_desc = df.describe()
     df.info()      
     logger.info(df_desc)
