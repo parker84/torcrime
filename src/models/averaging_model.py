@@ -9,7 +9,7 @@ class AvgModel(BaseHelpers):
 
         Arguments:
             df {[type]} -- needs to have the follwing cols: 
-                            ["neighbourhood"]
+                            ["nbhd_id"]
         """
         super(AvgModel, self).__init__(**kwargs)
         self._check_cols(df)
@@ -22,16 +22,16 @@ class AvgModel(BaseHelpers):
         return totals_per_nbhd
 
     def _check_cols(self, df):
-        for col in ["neighbourhood"]:
+        for col in ["nbhd_id"]:
             assert col in df.columns, f"{col} missing"
 
     def _get_totals_per_nbhd(self, df):
-        totals_per_nbhd = df.neighbourhood.value_counts()
+        totals_per_nbhd = df.nbhd_id.value_counts()
         return (
             pd.DataFrame(totals_per_nbhd)
             .reset_index()
             .rename(columns={
-                "neighbourhood": "crimes_counts_per_nbhd",
-                "index": "neighbourhood"
+                "nbhd_id": "crimes_counts_per_nbhd",
+                "index": "nbhd_id"
             })
         )

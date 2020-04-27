@@ -7,11 +7,11 @@ class Predict(BaseHelpers):
 
         Arguments:
             df {[type]} -- needs to have the following columns:
-                            ["premisetype", "neighbourhood", 
+                            ["premisetype", "nbhd_id", "neighbourhood",
                                 "sq_metres", "crime_type", "occurrenceyear"]
             model {function} -- w predict function that outputs a df 
                                     including the following columns:
-                                        ["neighbourhood", "expected_crimes_per_day"]
+                                        ["nbhd_id", "expected_crimes_per_day"]
         """
         super(Predict, self).__init__(**kwargs)
         self.df = df
@@ -19,7 +19,7 @@ class Predict(BaseHelpers):
         self.check_df()
     
     def check_df(self):
-        for col in ["premisetype", "neighbourhood", 
+        for col in ["premisetype", "nbhd_id", "neighbourhood",
                     "sq_metres", "crime_type", "occurrenceyear"]:
             assert col in self.df.columns, f"{col}"
 
@@ -56,12 +56,13 @@ class Predict(BaseHelpers):
     def predict_cases_per_sq_km_per_nbhd_per_day(self):
         cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_day()
         cases_w_sq_metres = cases_per_nbhd.merge(
-            self.df_filtered[["neighbourhood", "sq_metres"]].drop_duplicates(),
-            on=["neighbourhood"], how="left"
+            self.df_filtered[["nbhd_id", "sq_metres", "neighbourhood"]].drop_duplicates(),
+            on=["nbhd_id"], how="left"
         )
         assert cases_w_sq_metres.shape[0] == cases_per_nbhd.shape[0], "join is off"
         cases_w_sq_metres["expected_crimes_per_day_per_sq_km"] = (
             cases_w_sq_metres.expected_crimes_per_day
             / (cases_w_sq_metres.sq_metres * 1e-6)
         )
+        self.log.info("\n" + str(cases_w_sq_metres.describe()))
         return cases_w_sq_metres
