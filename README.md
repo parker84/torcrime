@@ -1,7 +1,9 @@
 project_name
 ==============================
 
-Data gathered from here: http://data.torontopolice.on.ca/datasets/neighbourhood-crime-rates-boundary-file-
+For details on:
+- Deployment see here: /docs/tutorials/deploying_app_to_beanstalk.md
+- Data Collection / preprocessing see here: /docs/tutorials/vizualizing_crime_data_for_toronto.md
 
 Project Organization
 ------------
