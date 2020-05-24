@@ -55,6 +55,7 @@ DAYS_OF_WEEK = [
     "Monday", "Tuesday", "Wednesday", "Thursday", 
     "Friday", "Saturday", "Sunday"
 ]
+HOURS_OF_DAY = list(range(24))
 
 model = AvgModel()
 predicter = Predict(df, model)
@@ -64,10 +65,10 @@ predicter.filter_df(
             max_year=2019, 
             min_year=2014, 
             min_hour=0,
-            max_hour=24,
+            max_hour=23,
             days_of_week=DAYS_OF_WEEK
 )
-preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
 assert preds.shape[0] == len(counties["features"])
 
 # App layout
@@ -136,11 +137,11 @@ app.layout = html.Div(
                                     id="slider-text",
                                     children="Drag the slider to change the year:",
                                 ),
-                                dcc.Slider(
+                                dcc.RangeSlider(
                                     id="years-slider",
                                     min=min(YEARS),
                                     max=max(YEARS),
-                                    value=max(YEARS),
+                                    value=[min(YEARS), max(YEARS)],
                                     marks={
                                         str(year): {
                                             "label": str(year),
@@ -190,20 +191,20 @@ app.layout = html.Div(
     [Input("years-slider", "value")],
     [State("county-choropleth", "figure")],
 )
-def display_map(year, figure):
+def display_map(years, figure):
     # TODO: integrate w predict_model
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
                 premises=["Outdoor"], 
                 crimes=["Assualt"], 
-                max_year=2019, 
-                min_year=2014, 
+                max_year=years[1], 
+                min_year=years[0], 
                 min_hour=0,
                 max_hour=24,
                 days_of_week=DAYS_OF_WEEK
     )
-    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
     assert preds.shape[0] == len(counties["features"])
     fig=(
         px.choropleth(preds, 
