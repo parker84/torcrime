@@ -209,11 +209,28 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Div(
+                            id="premise-checklist-container",
+                            children=[
+                                html.P(
+                                    id="premise-checks-text",
+                                    children="Choose your premise types of interest:",
+                                ),
+                                dcc.Checklist(
+                                    id="premise-checker",
+                                    options=[
+                                        {'label': premise, 'value': premise}
+                                        for premise in PREMISES
+                                    ],
+                                    value=['Outside']
+                                ), 
+                            ],
+                        ),
+                        html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
-                                    f"Heatmap of estimated probability of {CRIME_OPTIONS[0]}\
-                            occuring in a given square foot of each neihbourhood in year {min(YEARS)}",
+                                   f"Heatmap of estimated number of Crimes per hour\
+                                        occuring in a given square km of each neihbourhood",
                                     id="heatmap-title",
                                 ),
                                 dcc.Graph(
@@ -248,15 +265,16 @@ app.layout = html.Div(
         Input("years-slider", "value"), 
         Input("hours-slider", "value"),
         Input("day-slider", "value"),
-        Input("crime-checker", "value")
+        Input("crime-checker", "value"),
+        Input("premise-checker", "value")
     ],
     [State("county-choropleth", "figure")],
 )
-def display_map(years, hours, days, crimes, figure):
+def display_map(years, hours, days, crimes, premises, figure):
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
-                premises=["Outside"],
+                premises=premises,
                 crimes=crimes, 
                 max_year=years[1], 
                 min_year=years[0], 
@@ -290,8 +308,7 @@ def display_map(years, hours, days, crimes, figure):
     ])
 def update_map_title(year):#, crime):
     # TODO: get the crime droppddown
-    crime="Assaualt"
-    return f"Heatmap of estimated number of {crime}s per hour\
+    return f"Heatmap of estimated number of Crimes per hour\
             occuring in a given square km of each neihbourhood"
 
 
