@@ -101,6 +101,20 @@ class Predict(BaseHelpers):
         self.log.info("\n" + str(cases_w_sq_metres.describe()))
         return cases_w_sq_metres
 
+    def predict_cases_per_10k_people_per_nbhd_per_hour(self):
+        cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_hour()
+        cases_w_pop = cases_per_nbhd.merge(
+            self.df_filtered[["nbhd_id", "population", "neighbourhood"]].drop_duplicates(),
+            on=["nbhd_id"], how="left"
+        )
+        assert cases_w_pop.shape[0] == cases_per_nbhd.shape[0], "join is off"
+        cases_w_pop["expected_crimes_per_hour_per_10k_people"] = (
+            cases_w_pop.expected_crimes_per_hour
+            / (cases_w_pop.population / 10000)
+        )
+        self.log.info("\n" + str(cases_w_pop.describe()))
+        return cases_w_pop
+
     def _get_nbhds(self):
         self.nbhd_df = self.df[["nbhd_id"]].drop_duplicates()
     
