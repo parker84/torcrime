@@ -27,6 +27,7 @@ eb init -p python-3.6 tor-crime-app --region ca-central-1
 eb init
 # Y
 eb create tor-crime-app
+eb open
 ```
 
 ### managing apps:
