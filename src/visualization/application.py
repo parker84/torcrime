@@ -51,13 +51,21 @@ CRIME_OPTIONS = [
 PREMISES = [
     "Outside"
 ]
+DAYS_OF_WEEK = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", 
+    "Friday", "Saturday", "Sunday"
+]
 
 model = AvgModel()
 predicter = Predict(df, model)
 predicter.filter_df(
-            ["Outdoor"],
-            ["Assualt"],
-            2019, 2014
+            premises=["Outdoor"], 
+            crimes=["Assualt"], 
+            max_year=2019, 
+            min_year=2014, 
+            min_hour=0,
+            max_hour=24,
+            days_of_week=DAYS_OF_WEEK
 )
 preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
 assert preds.shape[0] == len(counties["features"])
@@ -156,7 +164,7 @@ app.layout = html.Div(
                                     figure=(
                                         px.choropleth(preds, 
                                             geojson=counties, 
-                                            color="expected_crimes_per_day_per_sq_km",
+                                            color="expected_crimes_per_hour_per_sq_km",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -187,16 +195,20 @@ def display_map(year, figure):
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
-                ["Outdoor"],
-                ["Assualt"],
-                2019, 2014
+                premises=["Outdoor"], 
+                crimes=["Assualt"], 
+                max_year=2019, 
+                min_year=2014, 
+                min_hour=0,
+                max_hour=24,
+                days_of_week=DAYS_OF_WEEK
     )
     preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
     assert preds.shape[0] == len(counties["features"])
     fig=(
         px.choropleth(preds, 
             geojson=counties, 
-            color="expected_crimes_per_day_per_sq_km",
+            color="expected_crimes_per_hour_per_sq_km",
             locations="nbhd_id", 
             featureidkey="properties.clean_nbdh_id",
             hover_data=["neighbourhood"],

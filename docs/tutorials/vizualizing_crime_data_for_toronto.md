@@ -23,7 +23,7 @@ with open("./data/raw/shapefile_toronto/Neighbourhood_Crime_Rates_Boundary_File_
 fig=(
     px.choropleth(preds_per_nbhd_id, 
         geojson=counties, 
-        color="expected_crimes_per_day_per_sq_km",
+        color="expected_crimes_per_hour_per_sq_km",
         locations="nbhd_id", 
         featureidkey="properties.clean_nbdh_id",
         hover_data=["neighbourhood"],

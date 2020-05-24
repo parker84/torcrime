@@ -5,6 +5,13 @@ For details on:
 - Deployment see here: /docs/tutorials/deploying_app_to_beanstalk.md
 - Data Collection / preprocessing see here: /docs/tutorials/vizualizing_crime_data_for_toronto.md
 
+### Setup:
+
+```sh
+# run all tests:
+python -m unittest discover ./tests/
+```
+
 Project Organization
 ------------
 
