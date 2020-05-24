@@ -37,9 +37,15 @@ class Predict(BaseHelpers):
         """
         self.log.info(f"shape before filtering: {self.df.shape}")
         self.df_filtered = self.df[
-            self.df.premisetype.isin(premises) & 
-            self.df.occurrenceyear <= max_year &
-            self.df.crime_type.isin(crimes)
+            self.df.premisetype.astype(str).isin(premises)
+        ]
+        self.log.info(f"rows after filtering from premise: {self.df_filtered.shape[0]}")
+        self.df_filtered = self.df_filtered[
+            self.df_filtered.occurrenceyear <= max_year
+        ]
+        self.log.info(f"rows after filtering from premise, max_year: {self.df_filtered.shape[0]}")
+        self.df_filtered = self.df_filtered[
+            self.df_filtered.crime_type.isin(crimes)
         ]
         self.log.info(f"rows after filtering from premise, max_year and crime: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[

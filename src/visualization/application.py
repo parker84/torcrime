@@ -44,13 +44,8 @@ with open("./viz_data/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") 
 df = pd.read_csv("./viz_data/crime_data.csv")
 
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
-CRIME_OPTIONS = [
-    "Assault",
-    "Robbery"
-]
-PREMISES = [
-    "Outside"
-]
+CRIME_OPTIONS = df.crime_type.unique().tolist()
+PREMISES = df.premisetype.unique().tolist()
 DAYS_OF_WEEK = [
     "Monday", "Tuesday", "Wednesday", "Thursday", 
     "Friday", "Saturday", "Sunday"
@@ -60,8 +55,8 @@ HOURS_OF_DAY = list(range(25))
 model = AvgModel()
 predicter = Predict(df, model)
 predicter.filter_df(
-            premises=["Outdoor"], 
-            crimes=["Assualt"], 
+            premises=["Outside"], 
+            crimes=["Assault"], 
             max_year=2019, 
             min_year=2014, 
             min_hour=0,
@@ -197,6 +192,23 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Div(
+                            id="crime-checklist-container",
+                            children=[
+                                html.P(
+                                    id="crime-checks-text",
+                                    children="Choose your crime types of interest:",
+                                ),
+                                dcc.Checklist(
+                                    id="crime-checker",
+                                    options=[
+                                        {'label': crime, 'value': crime}
+                                        for crime in CRIME_OPTIONS
+                                    ],
+                                    value=['Assault']
+                                ), 
+                            ],
+                        ),
+                        html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
@@ -235,16 +247,17 @@ app.layout = html.Div(
     [
         Input("years-slider", "value"), 
         Input("hours-slider", "value"),
-        Input("day-slider", "value")
+        Input("day-slider", "value"),
+        Input("crime-checker", "value")
     ],
     [State("county-choropleth", "figure")],
 )
-def display_map(years, hours, days, figure):
+def display_map(years, hours, days, crimes, figure):
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
-                premises=["Outdoor"],
-                crimes=["Assualt"], 
+                premises=["Outside"],
+                crimes=crimes, 
                 max_year=years[1], 
                 min_year=years[0], 
                 min_hour=hours[0],
@@ -283,5 +296,5 @@ def update_map_title(year):#, crime):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8052)
+    app.run_server(debug=True, port=8053)
     # app.run_server()
