@@ -7,4 +7,4 @@ engine = create_engine(config('ENGINE_PATH'))
 conn = engine.connect()
 
 df = pd.read_sql("select * from stg.crime_data", conn)
-df.to_csv("./data/processed/crime_data.csv")
+df.to_csv("./src/visualization/viz_data/crime_data.csv")
