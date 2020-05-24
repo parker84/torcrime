@@ -30,9 +30,18 @@ server = app.server
 
 APP_PATH = str(pathlib.Path(__file__).parent.resolve())
 
-with open("./data/raw/shapefile_toronto/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+# with open(os.path.join(
+#             config("PYTHONPATH"),
+#             "./data/raw/shapefile_toronto/Neighbourhood_Crime_Rates_Boundary_File_clean.json"), 
+#         "r") as f:
+#     counties = json.load(f)
+# df = pd.read_csv(os.path.join(
+#             config("PYTHONPATH"),
+#             "./data/processed/crime_data.csv"))
+
+with open("./viz_data/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
     counties = json.load(f)
-df = pd.read_csv("./data/processed/crime_data.csv")
+df = pd.read_csv("./viz_data/crime_data.csv")
 
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
 CRIME_OPTIONS = [
@@ -63,7 +72,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.Img(
-                            src=app.get_asset_url("dash-logo.png"),
+                            src=app.get_asset_url("deloitte_logo_transparent_back.png"),
                             id="plotly-image",
                             style={
                                 "height": "60px",
@@ -175,7 +184,15 @@ app.layout = html.Div(
 )
 def display_map(year, figure):
     # TODO: integrate w predict_model
-    # df_filt = 
+    model = AvgModel()
+    predicter = Predict(df, model)
+    predicter.filter_df(
+                ["Outdoor"],
+                ["Assualt"],
+                2019, 2014
+    )
+    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+    assert preds.shape[0] == len(counties["features"])
     fig=(
         px.choropleth(preds, 
             geojson=counties, 
@@ -206,4 +223,5 @@ def update_map_title(year):#, crime):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    # app.run_server(debug=True)
+    app.run_server()
