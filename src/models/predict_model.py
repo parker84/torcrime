@@ -41,26 +41,30 @@ class Predict(BaseHelpers):
             self.df.occurrenceyear <= max_year &
             self.df.crime_type.isin(crimes)
         ]
+        self.log.info(f"rows after filtering from premise, max_year and crime: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
-            self.df_filtered.occurrencehour <= max_hour &
-            self.df_filtered.occurrencedayofweek.isin(days_of_week)
+            self.df_filtered.occurrencehour < max_hour
         ]
+        self.log.info(f"rows after filtering from max hour: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
-            self.df_filtered.occurrencehour <= max_hour 
+            [str(day).strip() in days_of_week 
+             for day in self.df_filtered.occurrencedayofweek.values]
         ]
+        self.log.info(f"rows after filtering from max hour and dow: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrenceyear >= min_year
         ]
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrencehour >= min_hour
         ]
+        self.log.info(f"rows after filtering from premise, min hour and min year: {self.df_filtered.shape[0]}")
         self.hours_of_potential_crime = (
             365 * 
             (max_year - min_year + 1) * 
             (len(days_of_week) / 7) * 
             (max_hour - min_hour + 1)
         )
-        self.log.info(f"shape after filtering: {self.df.shape}")
+        self.log.info(f"shape after filtering: {self.df_filtered.shape}")
 
     def get_predicted_cases_per_nbhd_per_hour(self):
         assert self.hours_of_potential_crime is not None, "filter df first"
