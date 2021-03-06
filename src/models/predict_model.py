@@ -68,7 +68,7 @@ class Predict(BaseHelpers):
             365 * 
             (max_year - min_year + 1) * 
             (len(days_of_week) / 7) * 
-            (max_hour - min_hour)
+            (max_hour - min_hour + 1)
         )
         self.log.info(f"shape after filtering: {self.df_filtered.shape}")
 
