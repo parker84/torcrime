@@ -15,9 +15,10 @@ class Predict(BaseHelpers):
         """
         super(Predict, self).__init__(**kwargs)
         self.df = df
+        self._get_nbhds()
         self.model = model
         self.check_df()
-    
+
     def check_df(self):
         for col in ["premisetype", "nbhd_id", "neighbourhood",
                     "sq_metres", "crime_type", "occurrenceyear"]:
@@ -57,21 +58,27 @@ class Predict(BaseHelpers):
             365 * 
             (max_year - min_year + 1) * 
             (len(days_of_week) / 7) * 
-            (max_hour - min_hour)
+            (max_hour - min_hour + 1)
         )
         self.log.info(f"shape after filtering: {self.df.shape}")
 
-    def get_predicted_cases_per_nbhd_per_day(self):
+    def get_predicted_cases_per_nbhd_per_hour(self):
         assert self.hours_of_potential_crime is not None, "filter df first"
         cases_per_nbhd = self.model.predict(
             self.df_filtered, self.hours_of_potential_crime
         )
-        assert "expected_crimes_per_hour" in cases_per_nbhd.columns, \
+        assert self.nbhd_df is not None, "need to run self._get_nbhds first"
+        cases_for_all_nbhds = (
+            self.nbhd_df
+            .merge(cases_per_nbhd, on="nbhd_id", how="left")
+            .fillna(0)
+        )
+        assert "expected_crimes_per_hour" in cases_for_all_nbhds.columns, \
             "missing required column from predict function on model"
-        return cases_per_nbhd
+        return cases_for_all_nbhds
 
-    def predict_cases_per_sq_km_per_nbhd_per_day(self):
-        cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_day()
+    def predict_cases_per_sq_km_per_nbhd_per_hour(self):
+        cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_hour()
         cases_w_sq_metres = cases_per_nbhd.merge(
             self.df_filtered[["nbhd_id", "sq_metres", "neighbourhood"]].drop_duplicates(),
             on=["nbhd_id"], how="left"
@@ -83,3 +90,7 @@ class Predict(BaseHelpers):
         )
         self.log.info("\n" + str(cases_w_sq_metres.describe()))
         return cases_w_sq_metres
+
+    def _get_nbhds(self):
+        self.nbhd_df = self.df[["nbhd_id"]].drop_duplicates()
+    

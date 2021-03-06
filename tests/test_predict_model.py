@@ -41,7 +41,7 @@ class TestPredict(unittest.TestCase):
             == 
             (np.array([7,4]) / (365*3)).round(3).tolist()
         )
-        preds_per_metre = self.predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+        preds_per_metre = self.predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
         assert (
             preds_per_metre.expected_crimes_per_hour_per_sq_km.round(3).tolist()
             == 

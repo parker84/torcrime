@@ -67,7 +67,7 @@ predicter.filter_df(
             max_hour=24,
             days_of_week=DAYS_OF_WEEK
 )
-preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
 assert preds.shape[0] == len(counties["features"])
 
 # App layout
@@ -203,7 +203,7 @@ def display_map(year, figure):
                 max_hour=24,
                 days_of_week=DAYS_OF_WEEK
     )
-    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
     assert preds.shape[0] == len(counties["features"])
     fig=(
         px.choropleth(preds, 
