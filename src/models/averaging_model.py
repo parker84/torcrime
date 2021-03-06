@@ -4,7 +4,7 @@ import pandas as pd
 
 class AvgModel(BaseHelpers):
 
-    def predict(self, df, days_of_potential_crime, **kwargs):
+    def predict(self, df, hours_of_potential_crime, **kwargs):
         """[summary]
 
         Arguments:
@@ -14,11 +14,11 @@ class AvgModel(BaseHelpers):
         super(AvgModel, self).__init__(**kwargs)
         self._check_cols(df)
         totals_per_nbhd = self._get_totals_per_nbhd(df)
-        totals_per_nbhd["expected_crimes_per_day"] = (
+        totals_per_nbhd["expected_crimes_per_hour"] = (
             totals_per_nbhd["crimes_counts_per_nbhd"] / 
-            days_of_potential_crime
+            hours_of_potential_crime
         )
-        totals_per_nbhd["days_of_potential_crime"] = days_of_potential_crime
+        totals_per_nbhd["hours_of_potential_crime"] = hours_of_potential_crime
         return totals_per_nbhd
 
     def _check_cols(self, df):

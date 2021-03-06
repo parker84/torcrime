@@ -51,15 +51,24 @@ CRIME_OPTIONS = [
 PREMISES = [
     "Outside"
 ]
+DAYS_OF_WEEK = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", 
+    "Friday", "Saturday", "Sunday"
+]
+HOURS_OF_DAY = list(range(25))
 
 model = AvgModel()
 predicter = Predict(df, model)
 predicter.filter_df(
-            ["Outdoor"],
-            ["Assualt"],
-            2019, 2014
+            premises=["Outdoor"], 
+            crimes=["Assualt"], 
+            max_year=2019, 
+            min_year=2014, 
+            min_hour=0,
+            max_hour=24,
+            days_of_week=DAYS_OF_WEEK
 )
-preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
 assert preds.shape[0] == len(counties["features"])
 
 # App layout
@@ -92,7 +101,7 @@ app.layout = html.Div(
                                     style={"margin-bottom": "0px"},
                                 ),
                                 html.H5(
-                                    "Estimating probability of crimes occurring by neighbourhood, year, day of week, premise type and time of day", style={"margin-top": "0px"}
+                                    "Estimating the number of crimes per hour occurring by neighbourhood", style={"margin-top": "0px"}
                                 ),
                             ]
                         )
@@ -128,17 +137,61 @@ app.layout = html.Div(
                                     id="slider-text",
                                     children="Drag the slider to change the year:",
                                 ),
-                                dcc.Slider(
+                                dcc.RangeSlider(
                                     id="years-slider",
                                     min=min(YEARS),
                                     max=max(YEARS),
-                                    value=max(YEARS),
+                                    value=[min(YEARS), max(YEARS)],
                                     marks={
                                         str(year): {
                                             "label": str(year),
                                             "style": {"color": "#7fafdf"},
                                         }
                                         for year in YEARS
+                                    },
+                                ),
+                            ],
+                        ),
+                        html.Div(
+                            id="hour-of-day-slider-container",
+                            children=[
+                                html.P(
+                                    id="hours-slider-text",
+                                    children="Drag the slider to change the hour of day:",
+                                ),
+                                dcc.RangeSlider(
+                                    id="hours-slider",
+                                    min=min(HOURS_OF_DAY),
+                                    max=max(HOURS_OF_DAY),
+                                    value=[min(HOURS_OF_DAY), max(HOURS_OF_DAY)],
+                                    marks={
+                                        str(hour): {
+                                            "label": str(hour),
+                                            "style": {"color": "#7fafdf"},
+                                        }
+                                        for hour in HOURS_OF_DAY
+                                    },
+                                ),
+                            ],
+                        ),
+                        html.Div(
+                            id="day-of-week-slider-container",
+                            children=[
+                                html.P(
+                                    id="day-slider-text",
+                                    children="Drag the slider to change the day of week:",
+                                ),
+                                dcc.RangeSlider(
+                                    id="day-slider",
+                                    min=0,
+                                    max=len(DAYS_OF_WEEK)-1,
+                                    value=[0, len(DAYS_OF_WEEK)],
+                                    marks={
+                                        i : {
+                                            "label": DAYS_OF_WEEK[i],
+                                            "style": {"color": "#7fafdf"},
+                                        }
+                                        for i in range(len(DAYS_OF_WEEK))
                                     },
                                 ),
                             ],
@@ -156,7 +209,7 @@ app.layout = html.Div(
                                     figure=(
                                         px.choropleth(preds, 
                                             geojson=counties, 
-                                            color="expected_crimes_per_day_per_sq_km",
+                                            color="expected_crimes_per_hour_per_sq_km",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -179,24 +232,31 @@ app.layout = html.Div(
 
 @app.callback(
     Output("county-choropleth", "figure"),
-    [Input("years-slider", "value")],
+    [
+        Input("years-slider", "value"), 
+        Input("hours-slider", "value"),
+        Input("day-slider", "value")
+    ],
     [State("county-choropleth", "figure")],
 )
-def display_map(year, figure):
-    # TODO: integrate w predict_model
+def display_map(years, hours, days, figure):
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
-                ["Outdoor"],
-                ["Assualt"],
-                2019, 2014
+                premises=["Outdoor"],
+                crimes=["Assualt"], 
+                max_year=years[1], 
+                min_year=years[0], 
+                min_hour=hours[0],
+                max_hour=hours[1],
+                days_of_week=DAYS_OF_WEEK[days[0]:days[1]]
     )
-    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
     assert preds.shape[0] == len(counties["features"])
     fig=(
         px.choropleth(preds, 
             geojson=counties, 
-            color="expected_crimes_per_day_per_sq_km",
+            color="expected_crimes_per_hour_per_sq_km",
             locations="nbhd_id", 
             featureidkey="properties.clean_nbdh_id",
             hover_data=["neighbourhood"],
@@ -218,10 +278,10 @@ def display_map(year, figure):
 def update_map_title(year):#, crime):
     # TODO: get the crime droppddown
     crime="Assaualt"
-    return f"Heatmap of estimated probability of {crime}\
-                            occuring in a given square foot of each neihbourhood in year {year}"
+    return f"Heatmap of estimated number of {crime}s per hour\
+            occuring in a given square km of each neihbourhood"
 
 
 if __name__ == "__main__":
-    # app.run_server(debug=True)
-    app.run_server()
+    app.run_server(debug=True, port=8052)
+    # app.run_server()

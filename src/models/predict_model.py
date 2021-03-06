@@ -11,19 +11,22 @@ class Predict(BaseHelpers):
                                 "sq_metres", "crime_type", "occurrenceyear"]
             model {function} -- w predict function that outputs a df 
                                     including the following columns:
-                                        ["nbhd_id", "expected_crimes_per_day"]
+                                        ["nbhd_id", "expected_crimes_per_hour"]
         """
         super(Predict, self).__init__(**kwargs)
         self.df = df
+        self._get_nbhds()
         self.model = model
         self.check_df()
-    
+
     def check_df(self):
         for col in ["premisetype", "nbhd_id", "neighbourhood",
                     "sq_metres", "crime_type", "occurrenceyear"]:
             assert col in self.df.columns, f"{col}"
 
-    def filter_df(self, premises, crimes, max_year, min_year):
+    def filter_df(self, premises, crimes, max_year, 
+                    min_year, min_hour, max_hour,
+                    days_of_week):
         """filter down the df for the viz
 
         Arguments:
@@ -35,34 +38,63 @@ class Predict(BaseHelpers):
         self.log.info(f"shape before filtering: {self.df.shape}")
         self.df_filtered = self.df[
             self.df.premisetype.isin(premises) & 
-            self.df.crime_type.isin(crimes) & 
-            self.df.occurrenceyear <= max_year 
+            self.df.occurrenceyear <= max_year &
+            self.df.crime_type.isin(crimes)
         ]
+        self.log.info(f"rows after filtering from premise, max_year and crime: {self.df_filtered.shape[0]}")
+        self.df_filtered = self.df_filtered[
+            self.df_filtered.occurrencehour < max_hour
+        ]
+        self.log.info(f"rows after filtering from max hour: {self.df_filtered.shape[0]}")
+        self.df_filtered = self.df_filtered[
+            [str(day).strip() in days_of_week 
+             for day in self.df_filtered.occurrencedayofweek.values]
+        ]
+        self.log.info(f"rows after filtering from max hour and dow: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrenceyear >= min_year
         ]
-        self.days_of_potential_crime = 365 * (max_year - min_year + 1)
-        self.log.info(f"shape after filtering: {self.df.shape}")
-
-    def get_predicted_cases_per_nbhd_per_day(self):
-        assert self.days_of_potential_crime is not None, "filter df first"
-        cases_per_nbhd = self.model.predict(
-            self.df_filtered, self.days_of_potential_crime
+        self.df_filtered = self.df_filtered[
+            self.df_filtered.occurrencehour >= min_hour
+        ]
+        self.log.info(f"rows after filtering from premise, min hour and min year: {self.df_filtered.shape[0]}")
+        self.hours_of_potential_crime = (
+            365 * 
+            (max_year - min_year + 1) * 
+            (len(days_of_week) / 7) * 
+            (max_hour - min_hour + 1)
         )
-        assert "expected_crimes_per_day" in cases_per_nbhd.columns, \
-            "missing required column from predict function on model"
-        return cases_per_nbhd
+        self.log.info(f"shape after filtering: {self.df_filtered.shape}")
 
-    def predict_cases_per_sq_km_per_nbhd_per_day(self):
-        cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_day()
+    def get_predicted_cases_per_nbhd_per_hour(self):
+        assert self.hours_of_potential_crime is not None, "filter df first"
+        cases_per_nbhd = self.model.predict(
+            self.df_filtered, self.hours_of_potential_crime
+        )
+        assert self.nbhd_df is not None, "need to run self._get_nbhds first"
+        cases_for_all_nbhds = (
+            self.nbhd_df
+            .merge(cases_per_nbhd, on="nbhd_id", how="left")
+            .fillna(0)
+        )
+        assert "expected_crimes_per_hour" in cases_for_all_nbhds.columns, \
+            "missing required column from predict function on model"
+        return cases_for_all_nbhds
+
+    def predict_cases_per_sq_km_per_nbhd_per_hour(self):
+        cases_per_nbhd = self.get_predicted_cases_per_nbhd_per_hour()
         cases_w_sq_metres = cases_per_nbhd.merge(
             self.df_filtered[["nbhd_id", "sq_metres", "neighbourhood"]].drop_duplicates(),
             on=["nbhd_id"], how="left"
         )
         assert cases_w_sq_metres.shape[0] == cases_per_nbhd.shape[0], "join is off"
-        cases_w_sq_metres["expected_crimes_per_day_per_sq_km"] = (
-            cases_w_sq_metres.expected_crimes_per_day
+        cases_w_sq_metres["expected_crimes_per_hour_per_sq_km"] = (
+            cases_w_sq_metres.expected_crimes_per_hour
             / (cases_w_sq_metres.sq_metres * 1e-6)
         )
         self.log.info("\n" + str(cases_w_sq_metres.describe()))
         return cases_w_sq_metres
+
+    def _get_nbhds(self):
+        self.nbhd_df = self.df[["nbhd_id"]].drop_duplicates()
+    
