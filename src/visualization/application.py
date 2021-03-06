@@ -44,13 +44,8 @@ with open("./viz_data/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") 
 df = pd.read_csv("./viz_data/crime_data.csv")
 
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
-CRIME_OPTIONS = [
-    "Assault",
-    "Robbery"
-]
-PREMISES = [
-    "Outside"
-]
+CRIME_OPTIONS = df.crime_type.unique().tolist()
+PREMISES = df.premisetype.unique().tolist()
 DAYS_OF_WEEK = [
     "Monday", "Tuesday", "Wednesday", "Thursday", 
     "Friday", "Saturday", "Sunday"
@@ -60,16 +55,18 @@ HOURS_OF_DAY = list(range(25))
 model = AvgModel()
 predicter = Predict(df, model)
 predicter.filter_df(
-            premises=["Outdoor"], 
-            crimes=["Assualt"], 
+            premises=["Outside"], 
+            crimes=["Assault"], 
             max_year=2019, 
             min_year=2014, 
             min_hour=0,
             max_hour=24,
             days_of_week=DAYS_OF_WEEK
 )
-preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
-assert preds.shape[0] == len(counties["features"])
+preds_per_km = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
+assert preds_per_km.shape[0] == len(counties["features"])
+preds_per_10k_people = predicter.predict_cases_per_10k_people_per_nbhd_per_hour()
+assert preds_per_10k_people.shape[0] == len(counties["features"])
 
 # App layout
 
@@ -197,19 +194,79 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Div(
+                            id="crime-checklist-container",
+                            children=[
+                                html.P(
+                                    id="crime-checks-text",
+                                    children="Choose your crime types of interest:",
+                                ),
+                                dcc.Checklist(
+                                    id="crime-checker",
+                                    options=[
+                                        {'label': crime, 'value': crime}
+                                        for crime in CRIME_OPTIONS
+                                    ],
+                                    value=['Assault']
+                                ), 
+                            ],
+                        ),
+                        html.Div(
+                            id="premise-checklist-container",
+                            children=[
+                                html.P(
+                                    id="premise-checks-text",
+                                    children="Choose your premise types of interest:",
+                                ),
+                                dcc.Checklist(
+                                    id="premise-checker",
+                                    options=[
+                                        {'label': premise, 'value': premise}
+                                        for premise in PREMISES
+                                    ],
+                                    value=['Outside']
+                                ), 
+                            ],
+                        ),
+                        html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
-                                    f"Heatmap of estimated probability of {CRIME_OPTIONS[0]}\
-                            occuring in a given square foot of each neihbourhood in year {min(YEARS)}",
+                                   f"Heatmap of estimated number of Crimes per hour\
+                                        occuring in a given square km of each neihbourhood",
                                     id="heatmap-title",
                                 ),
                                 dcc.Graph(
                                     id="county-choropleth",
                                     figure=(
-                                        px.choropleth(preds, 
+                                        px.choropleth(preds_per_km, 
                                             geojson=counties, 
                                             color="expected_crimes_per_hour_per_sq_km",
+                                            locations="nbhd_id", 
+                                            featureidkey="properties.clean_nbdh_id",
+                                            hover_data=["neighbourhood"],
+                                            color_continuous_scale="Viridis",
+                                            scope="north america",
+                                        )
+                                        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
+                                        .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+                                    )
+                                ),
+                            ],
+                        ),
+                        html.Div(
+                            id="heatmap-per-person-container",
+                            children=[
+                                html.P(
+                                   f"Heatmap of estimated number of Crimes per hour\
+                                        per 10,000 people in each neighbourhood",
+                                    id="heatmap-per-person-title",
+                                ),
+                                dcc.Graph(
+                                    id="choropleth-per-person",
+                                    figure=(
+                                        px.choropleth(preds_per_10k_people, 
+                                            geojson=counties, 
+                                            color="expected_crimes_per_hour_per_10k_people",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -235,26 +292,28 @@ app.layout = html.Div(
     [
         Input("years-slider", "value"), 
         Input("hours-slider", "value"),
-        Input("day-slider", "value")
+        Input("day-slider", "value"),
+        Input("crime-checker", "value"),
+        Input("premise-checker", "value")
     ],
     [State("county-choropleth", "figure")],
 )
-def display_map(years, hours, days, figure):
+def display_map(years, hours, days, crimes, premises, figure):
     model = AvgModel()
     predicter = Predict(df, model)
     predicter.filter_df(
-                premises=["Outdoor"],
-                crimes=["Assualt"], 
+                premises=premises,
+                crimes=crimes, 
                 max_year=years[1], 
                 min_year=years[0], 
                 min_hour=hours[0],
                 max_hour=hours[1],
                 days_of_week=DAYS_OF_WEEK[days[0]:days[1]]
     )
-    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
-    assert preds.shape[0] == len(counties["features"])
+    preds_per_km = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
+    assert preds_per_km.shape[0] == len(counties["features"])
     fig=(
-        px.choropleth(preds, 
+        px.choropleth(preds_per_km, 
             geojson=counties, 
             color="expected_crimes_per_hour_per_sq_km",
             locations="nbhd_id", 
@@ -268,6 +327,45 @@ def display_map(years, hours, days, figure):
     )
     return fig
 
+@app.callback(
+    Output("choropleth-per-person", "figure"),
+    [
+        Input("years-slider", "value"), 
+        Input("hours-slider", "value"),
+        Input("day-slider", "value"),
+        Input("crime-checker", "value"),
+        Input("premise-checker", "value")
+    ],
+    [State("choropleth-per-person", "figure")],
+)
+def display_map(years, hours, days, crimes, premises, figure):
+    model = AvgModel()
+    predicter = Predict(df, model)
+    predicter.filter_df(
+                premises=premises,
+                crimes=crimes, 
+                max_year=years[1], 
+                min_year=years[0], 
+                min_hour=hours[0],
+                max_hour=hours[1],
+                days_of_week=DAYS_OF_WEEK[days[0]:days[1]]
+    )
+    preds_per_km = predicter.predict_cases_per_10k_people_per_nbhd_per_hour()
+    assert preds_per_km.shape[0] == len(counties["features"])
+    fig=(
+        px.choropleth(preds_per_km, 
+            geojson=counties, 
+            color="expected_crimes_per_hour_per_10k_people",
+            locations="nbhd_id", 
+            featureidkey="properties.clean_nbdh_id",
+            hover_data=["neighbourhood"],
+            color_continuous_scale="Viridis",
+            scope="north america",
+        )
+        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
+        .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    )
+    return fig
 
 @app.callback(
     Output("heatmap-title", "children"), 
@@ -277,11 +375,10 @@ def display_map(years, hours, days, figure):
     ])
 def update_map_title(year):#, crime):
     # TODO: get the crime droppddown
-    crime="Assaualt"
-    return f"Heatmap of estimated number of {crime}s per hour\
+    return f"Heatmap of estimated number of Crimes per hour\
             occuring in a given square km of each neihbourhood"
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8052)
-    # app.run_server()
+    # app.run_server(debug=True, port=8053)
+    app.run_server()

@@ -10,15 +10,15 @@ class TestAvgModel(unittest.TestCase):
         cls.model = AvgModel()
         cls.df = pd.DataFrame(
             [
-                ["Annex"],
-                ["Annex"],
-                ["Annex"],
-                ["Annex"],
-                ["High Park"],
-                ["High Park"],
-                ["Bay St"],
+                ["Annex", 1],
+                ["Annex", 1],
+                ["Annex", 1],
+                ["Annex", 1],
+                ["High Park", 2],
+                ["High Park", 2],
+                ["Bay St", 3],
             ], 
-            columns=["neighbourhood"]
+            columns=["neighbourhood", "nbhd_id"]
         )
     
     def test_preds(self):
