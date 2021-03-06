@@ -13,6 +13,8 @@ import dash_html_components as html
 import pandas as pd
 from dash.dependencies import Input, Output, State
 import cufflinks as cf
+from src.models.predict_model import Predict
+from src.models.averaging_model import AvgModel
 
 # Initialize app
 
@@ -28,15 +30,37 @@ server = app.server
 
 APP_PATH = str(pathlib.Path(__file__).parent.resolve())
 
-with open("./data/raw/rates/Neighbourhood_Crime_Rates_Boundary_File_.json", "r") as f:
-    counties = json.load(f)
-df = pd.read_csv("./data/raw/rates/Neighbourhood_Crime_Rates_Boundary_File_.csv",
-                dtype={"Hood_ID": str})
+# with open(os.path.join(
+#             config("PYTHONPATH"),
+#             "./data/raw/shapefile_toronto/Neighbourhood_Crime_Rates_Boundary_File_clean.json"), 
+#         "r") as f:
+#     counties = json.load(f)
+# df = pd.read_csv(os.path.join(
+#             config("PYTHONPATH"),
+#             "./data/processed/crime_data.csv"))
 
-YEARS = [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
+with open("./viz_data/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+    counties = json.load(f)
+df = pd.read_csv("./viz_data/crime_data.csv")
+
+YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
 CRIME_OPTIONS = [
-    "Assault"
+    "Assault",
+    "Robbery"
 ]
+PREMISES = [
+    "Outside"
+]
+
+model = AvgModel()
+predicter = Predict(df, model)
+predicter.filter_df(
+            ["Outdoor"],
+            ["Assualt"],
+            2019, 2014
+)
+preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+assert preds.shape[0] == len(counties["features"])
 
 # App layout
 
@@ -48,7 +72,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.Img(
-                            src=app.get_asset_url("dash-logo.png"),
+                            src=app.get_asset_url("deloitte_logo_transparent_back.png"),
                             id="plotly-image",
                             style={
                                 "height": "60px",
@@ -108,7 +132,7 @@ app.layout = html.Div(
                                     id="years-slider",
                                     min=min(YEARS),
                                     max=max(YEARS),
-                                    value=min(YEARS),
+                                    value=max(YEARS),
                                     marks={
                                         str(year): {
                                             "label": str(year),
@@ -130,17 +154,16 @@ app.layout = html.Div(
                                 dcc.Graph(
                                     id="county-choropleth",
                                     figure=(
-                                        px.choropleth(df, 
+                                        px.choropleth(preds, 
                                             geojson=counties, 
-                                            color="Assault_AVG",
-                                            locations="OBJECTID", 
-                                            featureidkey="properties.OBJECTID",
-                                            hover_data=["Neighbourhood"],
+                                            color="expected_crimes_per_day_per_sq_km",
+                                            locations="nbhd_id", 
+                                            featureidkey="properties.clean_nbdh_id",
+                                            hover_data=["neighbourhood"],
                                             color_continuous_scale="Viridis",
                                             scope="north america",
-                                            # bgcolor='#f9f9f9'
                                         )
-                                        .update_geos(showcountries=False, showcoastlines=False, showland=False, fitbounds="locations")
+                                        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
                                         .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
                                     )
                                 ),
@@ -154,101 +177,51 @@ app.layout = html.Div(
 )
 
 
-# @app.callback(
-#     Output("county-choropleth", "figure"),
-#     [Input("years-slider", "value")],
-#     [State("county-choropleth", "figure")],
-# )
-# def display_map(year, figure):
-#     cm = dict(zip(BINS, DEFAULT_COLORSCALE))
-
-#     data = [
-#         dict(
-#             lat=df_lat_lon["Latitude "],
-#             lon=df_lat_lon["Longitude"],
-#             text=df_lat_lon["Hover"],
-#             type="scattermapbox",
-#             hoverinfo="text",
-#             marker=dict(size=5, color="white", opacity=0),
-#         )
-#     ]
-
-#     annotations = [
-#         dict(
-#             showarrow=False,
-#             align="right",
-#             text="<b>Age-adjusted death rate<br>per county per year</b>",
-#             font=dict(color="#2cfec1"),
-#             bgcolor="#1f2630",
-#             x=0.95,
-#             y=0.95,
-#         )
-#     ]
-
-#     for i, bin in enumerate(reversed(BINS)):
-#         color = cm[bin]
-#         annotations.append(
-#             dict(
-#                 arrowcolor=color,
-#                 text=bin,
-#                 x=0.95,
-#                 y=0.85 - (i / 20),
-#                 ax=-60,
-#                 ay=0,
-#                 arrowwidth=5,
-#                 arrowhead=0,
-#                 bgcolor="#1f2630",
-#                 font=dict(color="#2cfec1"),
-#             )
-#         )
-
-#     if "layout" in figure:
-#         lat = figure["layout"]["mapbox"]["center"]["lat"]
-#         lon = figure["layout"]["mapbox"]["center"]["lon"]
-#         zoom = figure["layout"]["mapbox"]["zoom"]
-#     else:
-#         lat = (38.72490,)
-#         lon = (-95.61446,)
-#         zoom = 3.5
-
-#     layout = dict(
-#         mapbox=dict(
-#             layers=[],
-#             accesstoken=mapbox_access_token,
-#             style=mapbox_style,
-#             center=dict(lat=lat, lon=lon),
-#             zoom=zoom,
-#         ),
-#         hovermode="closest",
-#         margin=dict(r=0, l=0, t=0, b=0),
-#         annotations=annotations,
-#         dragmode="lasso",
-#     )
-
-#     base_url = "https://raw.githubusercontent.com/jackparmer/mapbox-counties/master/"
-#     for bin in BINS:
-#         geo_layer = dict(
-#             sourcetype="geojson",
-#             source=base_url + str(year) + "/" + bin + ".geojson",
-#             type="fill",
-#             color=cm[bin],
-#             opacity=DEFAULT_OPACITY,
-#             # CHANGE THIS
-#             fill=dict(outlinecolor="#afafaf"),
-#         )
-#         layout["mapbox"]["layers"].append(geo_layer)
-
-#     fig = dict(data=data, layout=layout)
-#     return fig
+@app.callback(
+    Output("county-choropleth", "figure"),
+    [Input("years-slider", "value")],
+    [State("county-choropleth", "figure")],
+)
+def display_map(year, figure):
+    # TODO: integrate w predict_model
+    model = AvgModel()
+    predicter = Predict(df, model)
+    predicter.filter_df(
+                ["Outdoor"],
+                ["Assualt"],
+                2019, 2014
+    )
+    preds = predicter.predict_cases_per_sq_km_per_nbhd_per_day()
+    assert preds.shape[0] == len(counties["features"])
+    fig=(
+        px.choropleth(preds, 
+            geojson=counties, 
+            color="expected_crimes_per_day_per_sq_km",
+            locations="nbhd_id", 
+            featureidkey="properties.clean_nbdh_id",
+            hover_data=["neighbourhood"],
+            color_continuous_scale="Viridis",
+            scope="north america",
+        )
+        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
+        .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    )
+    return fig
 
 
-# @app.callback(Output("heatmap-title", "children"), [Input("years-slider", "value")])
-# def update_map_title(year):
-#     return "Heatmap of age adjusted mortality rates \
-# 				from poisonings in year {0}".format(
-#         year
-#     )
+@app.callback(
+    Output("heatmap-title", "children"), 
+    [
+        Input("years-slider", "value"), 
+        # Input("crime-dropdown", "value")
+    ])
+def update_map_title(year):#, crime):
+    # TODO: get the crime droppddown
+    crime="Assaualt"
+    return f"Heatmap of estimated probability of {crime}\
+                            occuring in a given square foot of each neihbourhood in year {year}"
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    # app.run_server(debug=True)
+    app.run_server()

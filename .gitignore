@@ -93,3 +93,4 @@ target/
 /src/visualization/rough/
 *.ipynb
 *.csv
+*.json
