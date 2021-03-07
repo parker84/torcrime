@@ -1,16 +1,31 @@
-project_name
+crime-toronto
 ==============================
 
-For details on:
+### Running The App Locally:
+```sh
+cd ./src/visualization
+# set your python path to the top of the repo
+export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting"
+# run the application:
+python ./application.py
+```
+
+### Running the tests:
+```sh
+# set your python path to the top of the repo
+export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting"
+# run all tests to ensure its working properly:
+python -m unittest discover ./tests/
+```
+### Running the data cleaning 
+```sh
+#TODO: finish the data cleaning documentation
+```
+
+### Additional Documentation
 - Deployment see here: /docs/tutorials/deploying_app_to_beanstalk.md
 - Data Collection / preprocessing see here: /docs/tutorials/vizualizing_crime_data_for_toronto.md
 
-### Setup:
-
-```sh
-# run all tests:
-python -m unittest discover ./tests/
-```
 
 Project Organization
 ------------
