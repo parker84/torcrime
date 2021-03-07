@@ -1,6 +1,9 @@
 crime-toronto
 ==============================
 
+![image](https://user-images.githubusercontent.com/12496987/110250327-bff7e800-7f48-11eb-9211-6776189ac57a.png)
+
+
 ### Running The App Locally:
 ```sh
 cd ./src/visualization
