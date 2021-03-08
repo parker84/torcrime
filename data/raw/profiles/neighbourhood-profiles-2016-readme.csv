@@ -1,0 +1,8 @@
+_id,Field Name / Item / Column name,Description / Definition
+1,See attached .csv data document,"Definitions of most fields are as defined by the Dictionary, Census of Population. 2016 available from Statistics Canada:"
+2,,http://www12.statcan.gc.ca/census-recensement/2016/ref/dict/index-eng.cfm
+3,Neighbourhood,"In this file, the word neighbourhood is used to refer to the City of Toronto's 140 social planning neighbourhoods. These neighbourhoods were developed by the City of Toronto to help government and community organizations with their local planning by providing socio-economic data at a meaningful geographic area. Each neighbourhood is also referred to by a neighbourhood number. Each data point in this file is presented for the City's 140 neighbourhoods, as well as for the City of Toronto as a whole. For the city as a whole, Statistics Canada's Census Division geography is used."
+4,TSNS Designation,This concept refers to the designation assigned to each neighbourhood under the City of Toronto's Toronto Strong Neighbourhoods Strategy 2020.
+5,TSNS Designation: NIA,This neighbourhood was designated as a Neighbourhood Improvement Area (NIA) under the Toronto Strong Neighbourhoods Strategy 2020.
+6,TSNS Designation: Emerging Neighbourhood,"This neighbourhood was not designated as an NIA, but had been designated as a Priority Investment Area (PIA) neighbourhood under the previous Strong Neighbourhoods plan."
+7,TSNS Designation: No designation,This neighbourhood was not designated as an NIA or a PIA Neighbourhood.
