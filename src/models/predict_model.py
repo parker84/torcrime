@@ -1,6 +1,6 @@
-from dlearn.utils.base import BaseHelpers
+from src.utils.logger import init_logger
 
-class Predict(BaseHelpers):
+class Predict():
 
     def __init__(self, df, model, **kwargs):
         """[summary]
@@ -13,8 +13,8 @@ class Predict(BaseHelpers):
                                     including the following columns:
                                         ["nbhd_id", "expected_crimes_per_hour"]
         """
-        super(Predict, self).__init__(**kwargs)
         self.df = df
+        self.logger = init_logger("predict_model")
         self._get_nbhds()
         self.model = model
         self.check_df()
@@ -35,42 +35,42 @@ class Predict(BaseHelpers):
             max_year {int} -- max_year inclusive
             min_year {int} -- min_year inclusive
         """
-        self.log.info(f"shape before filtering: {self.df.shape}")
+        self.logger.info(f"shape before filtering: {self.df.shape}")
         self.df_filtered = self.df[
             self.df.premisetype.astype(str).isin(premises)
         ]
-        self.log.info(f"rows after filtering from premise: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from premise: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrenceyear <= max_year
         ]
-        self.log.info(f"rows after filtering from premise, max_year: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from premise, max_year: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.crime_type.isin(crimes)
         ]
-        self.log.info(f"rows after filtering from premise, max_year and crime: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from premise, max_year and crime: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrencehour < max_hour
         ]
-        self.log.info(f"rows after filtering from max hour: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from max hour: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             [str(day).strip() in days_of_week 
              for day in self.df_filtered.occurrencedayofweek.values]
         ]
-        self.log.info(f"rows after filtering from max hour and dow: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from max hour and dow: {self.df_filtered.shape[0]}")
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrenceyear >= min_year
         ]
         self.df_filtered = self.df_filtered[
             self.df_filtered.occurrencehour >= min_hour
         ]
-        self.log.info(f"rows after filtering from premise, min hour and min year: {self.df_filtered.shape[0]}")
+        self.logger.info(f"rows after filtering from premise, min hour and min year: {self.df_filtered.shape[0]}")
         self.hours_of_potential_crime = (
             365 * 
             (max_year - min_year + 1) * 
             (len(days_of_week) / 7) * 
             (max_hour - min_hour + 1)
         )
-        self.log.info(f"shape after filtering: {self.df_filtered.shape}")
+        self.logger.info(f"shape after filtering: {self.df_filtered.shape}")
 
     def get_predicted_cases_per_nbhd_per_hour(self):
         assert self.hours_of_potential_crime is not None, "filter df first"
@@ -98,7 +98,7 @@ class Predict(BaseHelpers):
             cases_w_sq_metres.expected_crimes_per_hour
             / (cases_w_sq_metres.sq_metres * 1e-6)
         )
-        self.log.info("\n" + str(cases_w_sq_metres.describe()))
+        self.logger.info("\n" + str(cases_w_sq_metres.describe()))
         return cases_w_sq_metres
 
     def predict_cases_per_10k_people_per_nbhd_per_hour(self):
@@ -112,7 +112,7 @@ class Predict(BaseHelpers):
             cases_w_pop.expected_crimes_per_hour
             / (cases_w_pop.population / 10000)
         )
-        self.log.info("\n" + str(cases_w_pop.describe()))
+        self.logger.info("\n" + str(cases_w_pop.describe()))
         return cases_w_pop
 
     def _get_nbhds(self):

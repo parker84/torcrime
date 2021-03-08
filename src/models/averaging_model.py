@@ -1,8 +1,7 @@
-from dlearn.utils.base import BaseHelpers
 import pandas as pd
 
 
-class AvgModel(BaseHelpers):
+class AvgModel():
 
     def predict(self, df, hours_of_potential_crime, **kwargs):
         """[summary]
@@ -11,7 +10,6 @@ class AvgModel(BaseHelpers):
             df {[type]} -- needs to have the follwing cols: 
                             ["nbhd_id"]
         """
-        super(AvgModel, self).__init__(**kwargs)
         self._check_cols(df)
         totals_per_nbhd = self._get_totals_per_nbhd(df)
         totals_per_nbhd["expected_crimes_per_hour"] = (
