@@ -89,8 +89,8 @@ target/
 .mypy_cache/
 
 /docs/personal/
-/crime_env/
 /src/visualization/rough/
 *.ipynb
 *.csv
 *.json
+/venv/

@@ -3,7 +3,7 @@ from src.models.averaging_model import AvgModel
 import pandas as pd
 from sqlalchemy import create_engine
 from decouple import config
-from dlearn.utils.logger import init_logger
+from src.utils.logger import init_logger
 engine = create_engine(config('ENGINE_PATH'))
 conn = engine.connect()
 
