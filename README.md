@@ -1,7 +1,7 @@
 toronto-crime
 ==============================
 
-![image](https://user-images.githubusercontent.com/12496987/110250327-bff7e800-7f48-11eb-9211-6776189ac57a.png)
+![image](https://user-images.githubusercontent.com/12496987/110340448-48cd5d00-7ff7-11eb-9116-936f9e5798e9.png)
 
 
 ### Running The App Locally (using 2014-2019 data):
