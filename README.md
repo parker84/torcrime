@@ -1,6 +1,8 @@
 toronto-crime
 ==============================
 
+A repo that builds a dashboard to visualize crime rates by neighbourhood in toronto while controlling for various variables (such as population and square kilometres).
+
 ![image](https://user-images.githubusercontent.com/12496987/110340448-48cd5d00-7ff7-11eb-9116-936f9e5798e9.png)
 
 
