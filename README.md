@@ -4,11 +4,16 @@ toronto-crime
 ![image](https://user-images.githubusercontent.com/12496987/110250327-bff7e800-7f48-11eb-9211-6776189ac57a.png)
 
 
-### Running The App Locally:
+### Running The App Locally (using 2014-2019 data):
 ```sh
 cd ./src/visualization
 # set your python path to the top of the repo
 export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting"
+# make a virtual env and activate it (mac)
+virtualenv venv
+source ./venv/bin/activate
+# install the requirements
+pip install -r ./requirements.txt
 # run the application:
 python ./application.py
 ```
@@ -21,7 +26,7 @@ export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting
 python -m unittest discover ./tests/
 ```
 
-### Running the data cleaning 
+### Running the data cleaning (not required unless you're updating the data)
 1. download the MCI_2014_to_2019 data: https://data.torontopolice.on.ca/datasets/56a0d46ae5f141269f2598a8c07e25c1_0/data 
    - Neighbourhood_Crime_Rates_Boundary_File_.csv is already in the repo, but if you want to make it again you can see docs/tutorials/vizualizing_crime_data_for_toronto.md
 2. load the csvs into sql with src/data/load_crime_data.py
