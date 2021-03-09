@@ -39,9 +39,9 @@ APP_PATH = str(pathlib.Path(__file__).parent.resolve())
 #             config("PYTHONPATH"),
 #             "./src/visualization/data/processed/crime_data.csv"))
 
-with open("./src/visualization/viz_data/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+with open("./data/processed/dash/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
     counties = json.load(f)
-df = pd.read_csv("./src/visualization/viz_data/crime_data.csv")
+df = pd.read_csv("./data/processed/dash/crime_data.csv")
 
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
 CRIME_OPTIONS = df.crime_type.unique().tolist()
