@@ -1,0 +1,26 @@
+,crime_type,premisetype,n
+21,Theft Over,Commercial,2334
+24,Theft Over,Outside,1692
+22,Theft Over,House,1143
+20,Theft Over,Apartment,994
+23,Theft Over,Other,488
+19,Robbery,Outside,9919
+16,Robbery,Commercial,4077
+15,Robbery,Apartment,1563
+18,Robbery,Other,1398
+17,Robbery,House,446
+12,Break and Enter,House,15267
+11,Break and Enter,Commercial,13631
+10,Break and Enter,Apartment,11571
+13,Break and Enter,Other,2608
+14,Break and Enter,Outside,24
+9,Auto Theft,Outside,12257
+7,Auto Theft,House,6163
+6,Auto Theft,Commercial,2055
+8,Auto Theft,Other,577
+5,Auto Theft,Apartment,482
+0,Assault,Apartment,28982
+4,Assault,Outside,22728
+3,Assault,Other,15246
+1,Assault,Commercial,14467
+2,Assault,House,11547

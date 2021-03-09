@@ -1,0 +1,31 @@
+,crime_type,occurrenceyear,n
+29,Theft Over,2019.0,1249
+28,Theft Over,2018.0,1232
+27,Theft Over,2017.0,1152
+25,Theft Over,2015.0,1018
+26,Theft Over,2016.0,1008
+24,Theft Over,2014.0,992
+21,Robbery,2017.0,3113
+22,Robbery,2018.0,2926
+20,Robbery,2016.0,2922
+18,Robbery,2014.0,2868
+19,Robbery,2015.0,2802
+23,Robbery,2019.0,2772
+17,Break and Enter,2019.0,8254
+16,Break and Enter,2018.0,7576
+12,Break and Enter,2014.0,7170
+13,Break and Enter,2015.0,6884
+15,Break and Enter,2017.0,6849
+14,Break and Enter,2016.0,6368
+11,Auto Theft,2019.0,4678
+10,Auto Theft,2018.0,4231
+6,Auto Theft,2014.0,3332
+9,Auto Theft,2017.0,3263
+7,Auto Theft,2015.0,3023
+8,Auto Theft,2016.0,3007
+5,Assault,2019.0,16601
+4,Assault,2018.0,16279
+3,Assault,2017.0,15920
+2,Assault,2016.0,15519
+1,Assault,2015.0,14795
+0,Assault,2014.0,13856
