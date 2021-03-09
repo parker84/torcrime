@@ -5,29 +5,28 @@ A repo that builds a dashboard to visualize crime rates by neighbourhood in toro
 
 Dashboard: https://toronto-crime-dash-app.herokuapp.com/
 ![image](https://user-images.githubusercontent.com/12496987/110340448-48cd5d00-7ff7-11eb-9116-936f9e5798e9.png)
-
+[Glossary](https://ago-item-storage.s3.us-east-1.amazonaws.com/ca9b49e6ba7a4c319e3d203a49a76aec/MCI_Shooting_Glossary.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDwaCXVzLWVhc3QtMSJHMEUCIEHf%2B%2F5sPpwLGGasDpLnOOgd491FPA6GYKGxUVHlMPpnAiEA%2BP9j2UE7knnORHOv6wANtaCQFTt3TEUywsUE0zX5UF0qtAMIZRAAGgw2MDQ3NTgxMDI2NjUiDIO5%2F7iK70vzU6YcuCqRAzNy1ZFCFRjuf%2Fsoo2y5JFrqORU1%2BdcndsatFGsJTwBV%2FK7t5qNkzm9jzQ9ajyRtbVDDDLPy6Uzjv6T%2B5t0VD8T7fX9IppLh3wKQJZq8w5wg0P55%2B7Cy8ey%2FcXgLSFVO8F0NRDW9hGaLPf2KCZ2NkQNbWLNmflPJCFzo6LikVBYVI8R5jpmzPgcg9A25%2BWtlTkA5SqiZiZg%2F%2BJ%2B3Fz5oD0tc4bP5MM3CH4fqe3JJLyDOCjW8kESIZff4g2DOdeeQgVKpCoJacxEppWpa3evX78od9bvCxVMQG2mM4fzaSgGTR3sRncw0lrdrA09MB4xlQoFqS6Qh%2B8I4DsYoOgScYZ94GNtgafHJErnuDzOBjVB0LfvjNaZNdPDnzeWuEfxZ1kMNE3EjiZd8sEwjZaqFcDP6JN2p6ToYWxwRt1H1gNzRD6wzzkEwq8gqC8d2%2BAsQnJSTaYopVk15bKUY8aItZGTYLXH%2FuIUKZJL2rRBAss5qgzTpbAce3LZ9jeR23nhr5KuD709kIcjsYc8v%2FBrcVbR7MN6gn4IGOusBJ6Mtx6%2FxmgbUykJT8BzW4e853RRScQEV61yRUHxmtwV3Qx4JJ3nVyvcd08PNax9Tgqk7eQkvt9epCIGNm%2B4PFnE60SFVoBYttTtTMPkMKYL3s0VWegx1swFka5lMboQCCwGCXfP0ALGEflX4onlSJqXhYllfWpcp6B1EDnhm4p8TW8KFfDbAPhKkMMMYlLTtKtDm%2FwSqz%2F4hgr2CnXCHEroUJPu8gKo3ceiG9T6iTmODvISYJa9l5JyCtE0IugKgBkDc1FN2xYd9YFdE2sffpycm5wTHPrWEzz9Y7Md6Yb46YpDVVb0eiLNtuQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210309T201959Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAYZTTEKKEYBWOH3B2%2F20210309%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=83839fafcf1c2844e35c28974ad0476199ef29138442f5d33a63da585fbc869f) 
 ### Deployment
 - heroku: see docs/tutorials/deploying_app_to_heroku.md
 - beanstalk: docs/tutorials/deploying_app_to_beanstalk.md
 
 ### Running The App Locally (using 2014-2019 data):
 ```sh
-cd ./src/visualization
 # set your python path to the top of the repo
-export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting"
+export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
 # make a virtual env and activate it (mac)
 virtualenv venv
 source ./venv/bin/activate
 # install the requirements
 pip install -r ./requirements.txt
 # run the application:
-python ./application.py
+python ./dash_app.py
 ```
 
 ### Running the tests:
 ```sh
 # set your python path to the top of the repo
-export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/crime-forecasting"
+export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
 # run all tests to ensure its working properly:
 python -m unittest discover ./tests/
 ```

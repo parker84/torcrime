@@ -39,9 +39,9 @@ APP_PATH = str(pathlib.Path(__file__).parent.resolve())
 #             config("PYTHONPATH"),
 #             "./src/visualization/data/processed/crime_data.csv"))
 
-with open("./data/processed/dash/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
     counties = json.load(f)
-df = pd.read_csv("./data/processed/dash/crime_data.csv")
+df = pd.read_csv("./data/processed/crime_data.csv")
 
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
 CRIME_OPTIONS = df.crime_type.unique().tolist()
@@ -56,7 +56,7 @@ model = AvgModel()
 predicter = Predict(df, model)
 predicter.filter_df(
             premises=["Outside"], 
-            crimes=["Assault"], 
+            crimes=["Assault", "Robbery"], 
             max_year=2019, 
             min_year=2014, 
             min_hour=0,
@@ -98,7 +98,7 @@ app.layout = html.Div(
                                     style={"margin-bottom": "0px"},
                                 ),
                                 html.H5(
-                                    "Estimating the number of crimes per hour occurring by neighbourhood", style={"margin-top": "0px"}
+                                    "Estimating the probability of a crime occuring in any given hour by neighbourhood", style={"margin-top": "0px"}
                                 ),
                             ]
                         )
@@ -109,8 +109,8 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.A(
-                            html.Button("Learn More", id="learn-more-button"),
-                            href="https://plot.ly/dash/pricing/",
+                            html.Button("GitHub", id="github-button"),
+                            href="https://github.com/parker84/toronto-crime",
                         )
                     ],
                     className="one-third column",
@@ -206,7 +206,7 @@ app.layout = html.Div(
                                         {'label': crime, 'value': crime}
                                         for crime in CRIME_OPTIONS
                                     ],
-                                    value=['Assault']
+                                    value=["Assault", "Robbery"]
                                 ), 
                             ],
                         ),
@@ -231,8 +231,8 @@ app.layout = html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
-                                   f"Heatmap of estimated number of Crimes per hour\
-                                        occuring in a given square km of each neihbourhood",
+                                   f"Heatmap of estimated probability of a crime occuring per hour\
+                                        and per given square km of each neihbourhood",
                                     id="heatmap-title",
                                 ),
                                 dcc.Graph(
@@ -240,7 +240,7 @@ app.layout = html.Div(
                                     figure=(
                                         px.choropleth(preds_per_km, 
                                             geojson=counties, 
-                                            color="expected_crimes_per_hour_per_sq_km",
+                                            color="Estimated Probability of a Crime Occuring Per Hour and Per Square km",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -257,8 +257,8 @@ app.layout = html.Div(
                             id="heatmap-per-person-container",
                             children=[
                                 html.P(
-                                   f"Heatmap of estimated number of Crimes per hour\
-                                        per 10,000 people in each neighbourhood",
+                                   f"Heatmap of estimated probability of a crime occuring per hour\
+                                        and per 10,000 people in each neighbourhood",
                                     id="heatmap-per-person-title",
                                 ),
                                 dcc.Graph(
@@ -266,7 +266,7 @@ app.layout = html.Div(
                                     figure=(
                                         px.choropleth(preds_per_10k_people, 
                                             geojson=counties, 
-                                            color="expected_crimes_per_hour_per_10k_people",
+                                            color="Estimated Probability of a Crime Occuring Per Hour and Per 10k People",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -315,7 +315,7 @@ def display_map(years, hours, days, crimes, premises, figure):
     fig=(
         px.choropleth(preds_per_km, 
             geojson=counties, 
-            color="expected_crimes_per_hour_per_sq_km",
+            color="Estimated Probability of a Crime Occuring Per Hour and Per Square km",
             locations="nbhd_id", 
             featureidkey="properties.clean_nbdh_id",
             hover_data=["neighbourhood"],
@@ -355,7 +355,7 @@ def display_map(years, hours, days, crimes, premises, figure):
     fig=(
         px.choropleth(preds_per_km, 
             geojson=counties, 
-            color="expected_crimes_per_hour_per_10k_people",
+            color="Estimated Probability of a Crime Occuring Per Hour and Per 10k People",
             locations="nbhd_id", 
             featureidkey="properties.clean_nbdh_id",
             hover_data=["neighbourhood"],
@@ -375,7 +375,7 @@ def display_map(years, hours, days, crimes, premises, figure):
     ])
 def update_map_title(year):#, crime):
     # TODO: get the crime droppddown
-    return f"Heatmap of estimated number of Crimes per hour\
+    return f"Heatmap of estimated Probability of a Crime occuring per hour\
             occuring in a given square km of each neihbourhood"
 
 
