@@ -24,7 +24,6 @@ heroku logs --tail
   - https://help.heroku.com/W23OAFGK/why-am-i-seeing-couldn-t-find-that-process-type-when-trying-to-scale-dynos
 
 
-
-### multiple apps in 1 repo:
+### multiple apps in 1 repo: (WIP)
 - https://stackoverflow.com/questions/41461517/deploy-two-separate-heroku-apps-from-same-git-repo
 - multi-procfile abilities (https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-multi-procfile)
