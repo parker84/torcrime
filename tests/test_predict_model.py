@@ -56,6 +56,11 @@ class TestPredict(unittest.TestCase):
             preds_per_km["Estimated Probability of a Crime Occuring Per Hour and Per Square km"].round(2).tolist(),
             (100 * (np.array([7,4]) / (365*3*4*24))).round(2).tolist()
         )
+        crime_counts = self.predicter.get_num_crimes()
+        self.assertEqual(
+            crime_counts["Number of Crimes"].round(2).tolist(),
+            [7, 4]
+        )
 
     def test_filtering(self):
         self.predicter.filter_df(
@@ -77,6 +82,11 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(
             preds_per_km["Estimated Probability of a Crime Occuring Per Hour and Per Square km"].round(3).tolist(),
             (100 * np.array([6,2]) / (365*3*4*4*(2/7))).round(3).tolist()
+        )
+        crime_counts = self.predicter.get_num_crimes()
+        self.assertEqual(
+            crime_counts["Number of Crimes"].round(2).tolist(),
+            [6, 2]
         )
 
 

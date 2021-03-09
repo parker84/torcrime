@@ -67,6 +67,8 @@ preds_per_km = predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
 assert preds_per_km.shape[0] == len(counties["features"])
 preds_per_10k_people = predicter.predict_cases_per_10k_people_per_nbhd_per_hour()
 assert preds_per_10k_people.shape[0] == len(counties["features"])
+counts = predicter.get_num_crimes()
+assert counts.shape[0] == len(counties["features"])
 
 # App layout
 
@@ -74,50 +76,50 @@ app.layout = html.Div(
     id="root",
     children=[
                 html.Div(
-            [
-                html.Div(
-                    [
-                        html.Img(
-                            src=app.get_asset_url("dash-logo.png"),
-                            id="plotly-image",
-                            style={
-                                "height": "60px",
-                                "width": "auto",
-                                "margin-bottom": "25px",
-                            },
-                        )
-                    ],
-                    className="one-third column",
-                ),
-                html.Div(
                     [
                         html.Div(
                             [
-                                html.H3(
-                                    "Crime Rates in Toronto",
-                                    style={"margin-bottom": "0px"},
-                                ),
-                                html.H5(
-                                    "Estimating the probability of a crime occuring in any given hour by neighbourhood", style={"margin-top": "0px"}
-                                ),
-                            ]
-                        )
-                    ],
-                    className="one-half column",
-                    id="title",
-                ),
-                html.Div(
-                    [
-                        html.A(
-                            html.Button("GitHub", id="github-button"),
-                            href="https://github.com/parker84/toronto-crime",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
-            ],
-            id="header",
+                                html.Img(
+                                    src=app.get_asset_url("dash-logo.png"),
+                                    id="plotly-image",
+                                    style={
+                                        "height": "60px",
+                                        "width": "auto",
+                                        "margin-bottom": "25px",
+                                    },
+                                )
+                            ],
+                            className="one-third column",
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        html.H3(
+                                            "Crime Rates in Toronto",
+                                            style={"margin-bottom": "0px"},
+                                        ),
+                                        html.H5(
+                                            "Crime Counts and Probabilities by Neighbourhood", style={"margin-top": "0px"}
+                                        ),
+                                    ]
+                                )
+                            ],
+                            className="one-half column",
+                            id="title",
+                        ),
+                        html.Div(
+                            [
+                                html.A(
+                                    html.Button("GitHub", id="github-button"),
+                                    href="https://github.com/parker84/toronto-crime",
+                                )
+                            ],
+                            className="one-third column",
+                            id="button",
+                        ),
+                ],
+                id="header",
             className="row flex-display",
             style={"margin-bottom": "25px"},
         ),
@@ -228,11 +230,23 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        html.H5(
+                                            "Heatmaps"
+                                        ),
+                                    ]
+                                )
+                            ],
+                            id="heatmap-title-intro",
+                        ),
+                        html.Div(
                             id="heatmap-container",
                             children=[
                                 html.P(
                                    f"Heatmap of estimated probability of a crime occuring per hour\
-                                        and per given square km of each neihbourhood",
+                                        and per given square km of each neighbourhood",
                                     id="heatmap-title",
                                 ),
                                 dcc.Graph(
@@ -267,6 +281,32 @@ app.layout = html.Div(
                                         px.choropleth(preds_per_10k_people, 
                                             geojson=counties, 
                                             color="Estimated Probability of a Crime Occuring Per Hour and Per 10k People",
+                                            locations="nbhd_id", 
+                                            featureidkey="properties.clean_nbdh_id",
+                                            hover_data=["neighbourhood"],
+                                            color_continuous_scale="Viridis",
+                                            scope="north america",
+                                        )
+                                        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
+                                        .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+                                    )
+                                ),
+                            ],
+                        ),
+                        html.Div(
+                            id="heatmap-count-container",
+                            children=[
+                                html.P(
+                                   f"Heatmap of Number of Crimes\
+                                        in Each Neighbourhood",
+                                    id="heatmap-title-counts",
+                                ),
+                                dcc.Graph(
+                                    id="county-choropleth-counts",
+                                    figure=(
+                                        px.choropleth(counts, 
+                                            geojson=counties, 
+                                            color="Number of Crimes",
                                             locations="nbhd_id", 
                                             featureidkey="properties.clean_nbdh_id",
                                             hover_data=["neighbourhood"],
@@ -368,16 +408,44 @@ def display_map(years, hours, days, crimes, premises, figure):
     return fig
 
 @app.callback(
-    Output("heatmap-title", "children"), 
+    Output("county-choropleth-counts", "figure"),
     [
         Input("years-slider", "value"), 
-        # Input("crime-dropdown", "value")
-    ])
-def update_map_title(year):#, crime):
-    # TODO: get the crime droppddown
-    return f"Heatmap of estimated Probability of a Crime occuring per hour\
-            occuring in a given square km of each neihbourhood"
-
+        Input("hours-slider", "value"),
+        Input("day-slider", "value"),
+        Input("crime-checker", "value"),
+        Input("premise-checker", "value")
+    ],
+    [State("county-choropleth-counts", "figure")],
+)
+def display_map(years, hours, days, crimes, premises, figure):
+    model = AvgModel()
+    predicter = Predict(df, model)
+    predicter.filter_df(
+                premises=premises,
+                crimes=crimes, 
+                max_year=years[1], 
+                min_year=years[0], 
+                min_hour=hours[0],
+                max_hour=hours[1],
+                days_of_week=DAYS_OF_WEEK[days[0]:days[1]]
+    )
+    counts = predicter.get_num_crimes()
+    assert counts.shape[0] == len(counties["features"])
+    fig=(
+        px.choropleth(counts, 
+            geojson=counties, 
+            color="Number of Crimes",
+            locations="nbhd_id", 
+            featureidkey="properties.clean_nbdh_id",
+            hover_data=["neighbourhood"],
+            color_continuous_scale="Viridis",
+            scope="north america",
+        )
+        .update_geos(showcountries=False, showcoastlines=False, showland=False, showlakes=False, fitbounds="locations")
+        .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    )
+    return fig
 
 if __name__ == "__main__":
     # app.run_server(debug=True, port=8053)
