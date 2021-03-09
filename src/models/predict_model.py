@@ -115,6 +115,15 @@ class Predict():
         self.logger.info("\n" + str(cases_w_pop.describe()))
         return cases_w_pop
 
+    def get_num_crimes(self):
+        crimes_per_nbhd = self.get_predicted_cases_per_nbhd_per_hour()
+        crimes_per_nbhd.rename(columns={"crimes_counts_per_nbhd": "Number of Crimes"}, inplace=True)
+        crimes_w_pop = crimes_per_nbhd.merge(
+            self.df_filtered[["nbhd_id", "neighbourhood"]].drop_duplicates(),
+            on=["nbhd_id"], how="left"
+        )
+        return crimes_w_pop
+
     def _get_nbhds(self):
         self.nbhd_df = self.df[["nbhd_id"]].drop_duplicates()
     
