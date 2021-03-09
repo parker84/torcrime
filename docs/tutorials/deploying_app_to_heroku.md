@@ -1,4 +1,4 @@
-
+# deploying_app_to_heroku
 
 ### steps taken:
 ```sh
@@ -23,7 +23,10 @@ heroku logs --tail
 - Why am I seeing "Couldn't find that process type" when trying to scale dynos?
   - https://help.heroku.com/W23OAFGK/why-am-i-seeing-couldn-t-find-that-process-type-when-trying-to-scale-dynos
 
+### Resources:
+1. https://dash.plotly.com/deployment
+2. https://devcenter.heroku.com/articles/getting-started-with-python
 
-### multiple apps in 1 repo: (WIP)
+### multiple apps in 1 repo: (WIP: have not yet got this working)
 - https://stackoverflow.com/questions/41461517/deploy-two-separate-heroku-apps-from-same-git-repo
 - multi-procfile abilities (https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-multi-procfile)
