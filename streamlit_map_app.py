@@ -32,9 +32,19 @@ crime_options = st.sidebar.multiselect(
     ]
 )
 
+location_options = st.sidebar.multiselect(
+    label="Choose Location Types",
+    options=crime_df.premisetype.unique().tolist(),
+    default=[
+        "Outside"
+    ]
+)
+
 filtered_crime_df = crime_df[crime_df.neighbourhood.isin(nbhd_options)]
 filtered_crime_df = filtered_crime_df[filtered_crime_df.crime_type.isin(
     crime_options)]
+filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
+    location_options)]
 
 
 # st.map(filtered_crime_df[["lat", "lon"]], zoom=12.5)
