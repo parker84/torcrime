@@ -10,6 +10,8 @@ select
     ,mci.occurrenceyear
     ,mci.premisetype
     ,mci.occurrencedayofweek
+    ,mci.lat
+    ,mci.long
     ,nbhd.sq_metres
     ,nbhd.population
     ,nbhd.nbhd_id as nbhd_nbhd_id

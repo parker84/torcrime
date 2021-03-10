@@ -1,4 +1,5 @@
 
+
 drop table if exists stg.mci_data;
 create table stg.mci_data as 
 select 
@@ -12,6 +13,8 @@ select
     ,premisetype
     ,occurrencedate
     ,occurrenceyear
+    ,"Long" as long
+    ,"Lat" as lat
 from src.mci_data;
 
 drop index if exists mci_event_and_crime_id_ix;
