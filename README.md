@@ -10,7 +10,7 @@ Dashboard: https://toronto-crime-dash-app.herokuapp.com/
 - heroku: see docs/tutorials/deploying_app_to_heroku.md
 - beanstalk: docs/tutorials/deploying_app_to_beanstalk.md
 
-### Running The App Locally (using 2014-2019 data):
+### Running The Apps Locally (using 2014-2019 data):
 ```sh
 # set your python path to the top of the repo
 export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
@@ -19,8 +19,10 @@ virtualenv venv
 source ./venv/bin/activate
 # install the requirements
 pip install -r ./requirements.txt
-# run the application:
+# run the dash application:
 python ./dash_app.py
+# run the streamlit map app:
+streamlit run ./streamlit_map_app.py 
 ```
 
 ### Running the tests:

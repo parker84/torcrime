@@ -4,8 +4,6 @@ import numpy as np
 
 st.title("Toronto Crime Analysis")
 
-map_data = pd.DataFrame(
-    np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-    columns=['lat', 'lon'])
+crime_df = pd.read_csv("./data/processed/crime_data.csv").rename(columns={"long": "lon"})
 
-st.map(map_data)
+st.map(crime_df[["lat", "lon"]])
