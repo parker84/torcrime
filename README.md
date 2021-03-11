@@ -22,9 +22,9 @@ pip install -r ./requirements.txt
 # run the dash application:
 python ./dash_app.py
 # run the streamlit apps:
-streamlit run ./streamlit_map_app.py 
-streamlit run ./streamlit_clustering_app.py
-streamlit run ./streamlit_address_app.py
+streamlit run ./st_map_app.py 
+streamlit run ./st_clustering_app.py
+streamlit run ./st_address_app.py
 ```
 
 ### Running the tests:
