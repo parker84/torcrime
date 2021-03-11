@@ -21,8 +21,10 @@ source ./venv/bin/activate
 pip install -r ./requirements.txt
 # run the dash application:
 python ./dash_app.py
-# run the streamlit map app:
+# run the streamlit apps:
 streamlit run ./streamlit_map_app.py 
+streamlit run ./streamlit_clustering_app.py
+streamlit run ./streamlit_address_app.py
 ```
 
 ### Running the tests:

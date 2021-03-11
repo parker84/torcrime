@@ -4,33 +4,23 @@ with st.echo(code_location='below'):
     import pandas as pd
     import numpy as np
     import pydeck as pdk
+    import math
     import hdbscan
     from pandasql import sqldf
     from plotnine import *
+    import geopy.distance
     from geopy.geocoders import Nominatim
     geolocator = Nominatim(user_agent="toronto_crime_app")
 
     #-----------------setup
-    st.title("Toronto Crime Analysis")
-    st.text("Cluster analysis for the crimes chosen within the neighbourhoods chosen")
-    st.text("First we'll cluster the crimes together, and remove outliers, then we'll visualize these clusters and finally overlay them on the streets of Toronto")
+    st.title("Toronto Crime Address Analysis")
+    st.text("This platform will allow you to investigate crime around a specific address of interest")
 
     crime_df = pd.read_csv(
         "./data/processed/crime_data.csv").rename(columns={"long": "lon"})
 
-    #---------------filtering
+    #---------------sidebar filtering
     st.sidebar.markdown('### Choose Your Filters')
-    nbhd_options = st.sidebar.multiselect(
-        label="Choose Neighbourhoods (May not render with all neighbourhoods chosen)",
-        options=crime_df.neighbourhood.unique().tolist(),
-        default=[
-            'Moss Park (73)',
-            'Church-Yonge Corridor (75)',
-            'Bay Street Corridor (76)',
-            'Kensington-Chinatown (78)',
-            'Waterfront Communities-The Island (77)'
-        ]
-    )
     crime_options = st.sidebar.multiselect(
         label="Choose Crime Types",
         options=crime_df.crime_type.unique().tolist(),
@@ -45,137 +35,115 @@ with st.echo(code_location='below'):
             "Outside"
         ]
     )
-
-    filtered_crime_df = crime_df[crime_df.neighbourhood.isin(nbhd_options)]
-    filtered_crime_df = filtered_crime_df[filtered_crime_df.crime_type.isin(
+    filtered_crime_df = crime_df[crime_df.crime_type.isin(
         crime_options)]
     filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
         location_options)]
 
-    #--------------clustering
-    st.sidebar.markdown('### Choose hdbscan parameters')
-    st.sidebar.text("(see here for more details: https://hdbscan.readthedocs.io/en/latest/parameter_selection.html)")
-    min_cluster_size = st.sidebar.selectbox(
-        label="Choose Minimum Cluster Size",
-        options=[10, 50, 100, 200, 400],
-        index=2
-    )
-
-    clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=min_cluster_size
-    )
-    clusterer.fit(filtered_crime_df[["lon", "lat"]])
-    filtered_crime_df["cluster"] = clusterer.labels_
-    filtered_crime_df["cluster_prob_assignment"] = clusterer.probabilities_
-
-    # filter out the points that didn't get assigned a cluster
-    filtered_crime_df_outliers_removed = filtered_crime_df[filtered_crime_df["cluster"] != -1]
-    perc_data_removed_bc_of_outliers = (1 - filtered_crime_df_outliers_removed.shape[0] / filtered_crime_df.shape[0]) * 100
-    st.text(f"Percentage of crimes removed because they're considered outliers: {round(perc_data_removed_bc_of_outliers, 2)}% (choosing a lower Minimum Cluster Size will reduce this %")
-
-    #--------------clustering eda
-    pysqldf = lambda q: sqldf(q, globals())
-    query = f"""
-        --sql
-        with info_per_cluster as (
-            select 
-                cluster 
-                ,count(1) as n_per_cluster
-                ,avg(lat) as avg_lat 
-                ,avg(lon) as avg_lon
-            from filtered_crime_df_outliers_removed
-            group by cluster 
-        ), info_per_neighbourhood as (
-            select 
-                neighbourhood
-                ,count(1) as n_per_nbhd
-            from filtered_crime_df_outliers_removed
-            group by neighbourhood 
-        ), info_per_cluster_neighbourhood as (
-            select 
-                cluster 
-                ,count(1) as n_per_cluster_and_neighbourhood
-                ,neighbourhood
-                ,population
-                ,sq_metres / 1000000 as sq_kms 
-            from filtered_crime_df_outliers_removed
-            group by cluster, neighbourhood
-        ) 
-        select 
-            clust.n_per_cluster
-            ,nbhd.n_per_nbhd
-            ,clust_and_nbhd.*
-            ,clust.avg_lat
-            ,clust.avg_lon
-        from info_per_cluster_neighbourhood as clust_and_nbhd 
-        left join info_per_cluster as clust on 
-            clust_and_nbhd.cluster = clust.cluster
-        left join info_per_neighbourhood as nbhd on 
-            clust_and_nbhd.neighbourhood = nbhd.neighbourhood
-        ;
-    """
-    stats_per_cluster_and_nbhd = pysqldf(query)
-    stats_per_cluster = stats_per_cluster_and_nbhd[["n_per_cluster", "cluster", "avg_lat", "avg_lon"]].drop_duplicates()
     
-    #-------------extract the address from the lat and long
-    addresses = []
-    for ix, row in stats_per_cluster[["avg_lat", "avg_lon"]].iterrows():
-        address = geolocator.reverse(f"{row.avg_lat}, {row.avg_lon}")
-        addresses.append(address[0])
-    stats_per_cluster["Address"] = addresses
-
-    #---------------show dataframes
-    st.text('Cluster Statistics: (you can hover over the address to see more details)')
-    st.dataframe(
-        stats_per_cluster[["n_per_cluster", "cluster", "Address", "avg_lat", "avg_lon"]]
-        .sort_values(by="n_per_cluster", ascending=False)
+    #------------Filtering to radius around address
+    address = st.text_input("Enter the address of interest", "1 Blue Jays Way, Toronto, ON M5V 1J1")
+    walking_mins_str = st.selectbox(
+        label="Select Walking Distance Radius",
+        options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
+        index=1
     )
-    st.text('Cluster/Neighbourhood Statistics:')
-    st.dataframe(
-        stats_per_cluster_and_nbhd
-        .sort_values(by="n_per_cluster", ascending=False)
+    hours = int(walking_mins_str.split(" ")[0]) / 60
+    km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
+    st.text(
+        f"The radius of interest in km is {km_radius} based on the assumption of 5 km/h walk speed (the avg walk speed according to wikipedia)"
     )
+    location = geolocator.geocode(address)
+    lat, lon = location.latitude, location.longitude
+    filtered_crime_df["distance_to_address"] = [
+        geopy.distance.distance((lat, lon), (row.lat, row.lon)).km
+        for ix, row in filtered_crime_df.iterrows()
+    ]
+    filtered_crime_df_within_radius = filtered_crime_df[filtered_crime_df["distance_to_address"] <= km_radius]
+    n_crimes = filtered_crime_df_within_radius.shape[0]
+    st.text(f'{n_crimes} Crimes within {km_radius} km radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
 
-    #-------visualization
-    if stats_per_cluster.shape[0] < 50: # => lets treat this as a str to viz it easier
-        filtered_crime_df_outliers_removed["cluster"] = filtered_crime_df_outliers_removed.cluster.astype(str)
-        stats_per_cluster["cluster"] = stats_per_cluster["cluster"].astype(str)
-    p_clust = ggplot(
-        filtered_crime_df_outliers_removed,
-        aes("lon", "lat", color="cluster")
-    ) + geom_point()
-    st.text("Here are the crimes, coloured by their cluster after removing outliers")
-    st.pyplot(p_clust.draw())
-    p_clust_center = ggplot(
-        stats_per_cluster,
-        aes("avg_lon", "avg_lat", color="cluster", size="n_per_cluster")
-    ) + geom_point()
-    st.text("Here are the centers of each cluster, sized by how many crimes occurred in that cluster")
-    st.pyplot(p_clust_center.draw())
-    p_nbhd = ggplot(
-        filtered_crime_df_outliers_removed,
-        aes("lon", "lat", color="neighbourhood")) + geom_point()
-    st.text("Here are the crimes, coloured by their neighbourhood after removing outliers")
-    st.pyplot(p_nbhd.draw())
+    # #-------------extract the address from the lat and long (too slow)
+    # addresses = []
+    # for ix, row in filtered_crime_df_within_radius[["lat", "lon"]].iterrows():
+    #     address = geolocator.reverse(f"{row.lat}, {row.lon}")
+    #     addresses.append(address[0])
+    # filtered_crime_df_within_radius["Address"] = addresses
 
-    st.text("Here are the crimes on the streets of Toronto, you can use this to isolate the locations of each cluster represented above")
-    st.text("(you can zoom/drag on this graph)")
+
+    #------------viz - counts on maps
+    df_eda_per_address = (
+        filtered_crime_df_within_radius
+        .groupby(["lat", "lon"])
+        .size().reset_index().rename(columns={0:"count"})
+    )
+    p = ggplot(
+        df_eda_per_address,
+        aes("lon", "lat", size="count")
+    ) + geom_point() + ggtitle(f'Crimes within {km_radius} km radius of {address}')
+    st.pyplot(p.draw())
+    st.text("Crimes On Toronto Streets (you can zoom/drag)")
     st.pydeck_chart(pdk.Deck(
         initial_view_state=pdk.ViewState(
-            latitude=43.65,
-            longitude=-79.38,
-            zoom=12,
+            latitude=lat,
+            longitude=lon,
+            zoom=14,
         ),
         layers=[
             pdk.Layer(
                 'ScatterplotLayer',
-                filtered_crime_df_outliers_removed,
+                filtered_crime_df_within_radius,
                 get_position=['lon', 'lat'],
                 auto_highlight=True,
-                get_radius=10,
+                get_radius=5,
                 get_fill_color='[180, 0, 200, 140]',
             ),
         ],
     ))
+
+
+    #------------viz - eda stats
+    def groupby_var_and_line_chart(df, var):
+        df_eda = (
+        df
+        .groupby(var)
+        .size().reset_index().rename(columns={0:"count"})
+    )
+        p = ggplot(
+            df_eda,
+            aes(var, "count", group=1)
+        ) + geom_line() + geom_point() + ggtitle(f'Crimes per {var} within {km_radius} km radius of {address}')
+        st.pyplot(p.draw())
+    
+    def groupby_2_vars_and_line_chart(df, variables):
+        df_eda = (
+        df
+        .groupby(variables)
+        .size().reset_index().rename(columns={0:"count"})
+    )
+        p = ggplot(
+            df_eda,
+            aes(variables[0], "count", group=variables[1], color=variables[1])
+        ) + geom_line() + geom_point() + ggtitle(f'Crimes per {variables} within {km_radius} km radius of {address}')
+        st.pyplot(p.draw())
+
+    groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrencehour")
+    groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrenceyear")
+    groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrencedayofweek")
+    groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrencehour", "crime_type"])
+    groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrenceyear", "crime_type"])
+    groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrencedayofweek", "crime_type"])
+
+
+    #---------------show dataframes
+    st.text(f'Crimes within {km_radius} km radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
+    st.dataframe(
+        filtered_crime_df_within_radius[[
+            "crime_type", #"Address", 
+            "occurrenceyear", "occurrencehour", "occurrencedayofweek", "premisetype", "neighbourhood"
+        ]]
+        .sort_values(by=["occurrenceyear"], ascending=False)
+    )
+
     st.button("Re-run")
     st.text("Code")
