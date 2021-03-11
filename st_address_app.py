@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import pydeck as pdk
 import math
-import hdbscan
-from pandasql import sqldf
 from plotnine import *
 import geopy.distance
 from geopy.geocoders import Nominatim
@@ -40,7 +38,7 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 
 
 #------------Filtering to radius around address
-address = st.text_input("Enter the address of interest", "1 Blue Jays Way, Toronto, ON M5V 1J1")
+address = st.text_input("Enter the address of interest", "1 Dundas st East, Toronto")
 walking_mins_str = st.selectbox(
     label="Select Walking Distance Radius",
     options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
