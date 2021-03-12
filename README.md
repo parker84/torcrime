@@ -4,8 +4,8 @@ toronto-crime
 A repo that builds a dashboard to visualize crime rates by neighbourhood in toronto while controlling for various variables (such as population and square kilometres).
 
 Address app: http://toronto-crime-address-app.herokuapp.com/
-![image](https://user-images.githubusercontent.com/12496987/110867211-6b2fd680-8294-11eb-8cad-f940552a0788.png)
-![image](https://user-images.githubusercontent.com/12496987/110867252-7daa1000-8294-11eb-9a0d-950aeeb9fce7.png)
+![image](https://user-images.githubusercontent.com/12496987/110871185-e8ab1500-829b-11eb-945e-7a319ad0ec0b.png)
+![image](https://user-images.githubusercontent.com/12496987/110871256-0a0c0100-829c-11eb-8e22-1577878a338a.png)
 
 
 Dash Dashboard: 
