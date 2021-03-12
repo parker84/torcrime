@@ -83,11 +83,16 @@ st.text(f'{n_crimes} Crimes within {walking_mins_str} radius of {address} betwee
 df_eda_per_address = (
     filtered_crime_df_within_radius
     .groupby(["lat", "lon"])
-    .size().reset_index().rename(columns={0:"count"})
+    .size().reset_index().rename(columns={0:"Number of Crimes"})
 )
 p = ggplot(
     df_eda_per_address.rename(columns={"lat": "latitude", "lon": "longitude"}),
-    aes("longitude", "latitude", size="count")
+    aes(
+        "longitude", "latitude", 
+        size="Number of Crimes", 
+        fill="Number of Crimes",
+        color="Number of Crimes"
+    )
 ) + geom_point() + ggtitle(f'Crimes within {walking_mins_str} radius of {address}')
 st.pyplot(p.draw())
 st.text("Crimes On Toronto Streets (you can zoom/drag)")
