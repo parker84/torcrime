@@ -40,24 +40,36 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 #------------Filtering to radius around address
 address = st.text_input("Enter the address of interest", "1 Dundas st East, Toronto")
 walking_mins_str = st.selectbox(
-    label="Select Walking Distance Radius",
+    label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
     options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
     index=1
 )
 hours = int(walking_mins_str.split(" ")[0]) / 60
 km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
-st.text(
-    f"The radius of interest in km is {km_radius} based on the assumption of 5 km/h walk speed (the avg walk speed according to wikipedia)"
-)
 location = geolocator.geocode(address)
 lat, lon = location.latitude, location.longitude
 filtered_crime_df["distance_to_address"] = [
     geopy.distance.distance((lat, lon), (row.lat, row.lon)).km
     for ix, row in filtered_crime_df.iterrows()
 ]
-filtered_crime_df_within_radius = filtered_crime_df[filtered_crime_df["distance_to_address"] <= km_radius]
+filtered_crime_df_within_radius = (
+    filtered_crime_df
+    [filtered_crime_df["distance_to_address"] <= km_radius]
+    .rename(
+        columns={
+            "occurrencehour": "Hour of Day",
+            "occurrenceyear": "Year",
+            "occurrencedayofweek": "Day of Week",
+            "crime_type": "Type of Crime"
+        }
+    )
+)
+filtered_crime_df_within_radius["Day of Week"] = pd.Categorical(
+    filtered_crime_df_within_radius["Day of Week"].str.strip(),
+    categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+)
 n_crimes = filtered_crime_df_within_radius.shape[0]
-st.text(f'{n_crimes} Crimes within {km_radius} km radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
+st.text(f'{n_crimes} Crimes within {walking_mins_str} radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
 
 # #-------------extract the address from the lat and long (too slow)
 # addresses = []
@@ -74,9 +86,9 @@ df_eda_per_address = (
     .size().reset_index().rename(columns={0:"count"})
 )
 p = ggplot(
-    df_eda_per_address,
-    aes("lon", "lat", size="count")
-) + geom_point() + ggtitle(f'Crimes within {km_radius} km radius of {address}')
+    df_eda_per_address.rename(columns={"lat": "latitude", "lon": "longitude"}),
+    aes("longitude", "latitude", size="count")
+) + geom_point() + ggtitle(f'Crimes within {walking_mins_str} radius of {address}')
 st.pyplot(p.draw())
 st.text("Crimes On Toronto Streets (you can zoom/drag)")
 st.pydeck_chart(pdk.Deck(
@@ -103,42 +115,45 @@ def groupby_var_and_line_chart(df, var):
     df_eda = (
     df
     .groupby(var)
-    .size().reset_index().rename(columns={0:"count"})
+    .size().reset_index().rename(columns={0:"Number of Crimes"})
 )
     p = ggplot(
         df_eda,
-        aes(var, "count", group=1)
-    ) + geom_line() + geom_point() + ggtitle(f'Crimes per {var} within {km_radius} km radius of {address}')
+        aes(var, "Number of Crimes", group=1)
+    ) + geom_line() + geom_point() + ggtitle(f'Crimes per {var} within {walking_mins_str} radius of {address}')
     st.pyplot(p.draw())
 
 def groupby_2_vars_and_line_chart(df, variables):
     df_eda = (
     df
     .groupby(variables)
-    .size().reset_index().rename(columns={0:"count"})
+    .size().reset_index().rename(columns={0:"Number of Crimes"})
 )
     p = ggplot(
         df_eda,
-        aes(variables[0], "count", group=variables[1], color=variables[1])
-    ) + geom_line() + geom_point() + ggtitle(f'Crimes per {variables} within {km_radius} km radius of {address}')
+        aes(variables[0], "Number of Crimes", group=variables[1], color=variables[1])
+    ) + geom_line() + geom_point() + ggtitle(f'Crimes within {walking_mins_str} radius of {address}')
     st.pyplot(p.draw())
 
-groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrencehour")
-groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrenceyear")
-groupby_var_and_line_chart(filtered_crime_df_within_radius, "occurrencedayofweek")
-groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrencehour", "crime_type"])
-groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrenceyear", "crime_type"])
-groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["occurrencedayofweek", "crime_type"])
+groupby_var_and_line_chart(filtered_crime_df_within_radius, "Hour of Day")
+groupby_var_and_line_chart(filtered_crime_df_within_radius, "Year")
+groupby_var_and_line_chart(filtered_crime_df_within_radius, "Day of Week")
+groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["Hour of Day", "Type of Crime"])
+groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["Year", "Type of Crime"])
+groupby_2_vars_and_line_chart(filtered_crime_df_within_radius, ["Day of Week", "Type of Crime"])
 
 
 #---------------show dataframes
-st.text(f'Crimes within {km_radius} km radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
+st.text(f'Crimes within {walking_mins_str} radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
+filtered_crime_df_within_radius["Day of Week"] = (
+    filtered_crime_df_within_radius["Day of Week"].astype(str)
+)
 st.dataframe(
     filtered_crime_df_within_radius[[
-        "crime_type", #"Address", 
-        "occurrenceyear", "occurrencehour", "occurrencedayofweek", "premisetype", "neighbourhood"
+        "Type of Crime", #"Address", 
+        "Year", "Hour of Day", "Day of Week", "premisetype", "neighbourhood"
     ]]
-    .sort_values(by=["occurrenceyear"], ascending=False)
+    .sort_values(by=["Year"], ascending=False)
 )
 
 st.button("Re-run")
