@@ -6,7 +6,16 @@ import math
 from plotnine import *
 import geopy.distance
 from geopy.geocoders import Nominatim
+import coloredlogs
+import logging
+import os
+import time
+
+#----------------helpers
 geolocator = Nominatim(user_agent="toronto_crime_app")
+logger = logging.getLogger("st_address_app.py")
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
+start_time = time.process_time()
 
 #-----------------setup
 st.title("Toronto Crime Address Analysis")
@@ -16,6 +25,7 @@ crime_df = pd.read_csv(
     "./data/processed/crime_data.csv").rename(columns={"long": "lon"})
 
 #---------------sidebar filtering
+logger.info("Sidebar filtering")
 st.sidebar.markdown('### Choose Your Filters')
 crime_options = st.sidebar.multiselect(
     label="Choose Crime Types",
@@ -38,6 +48,7 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 
 
 #------------Filtering to radius around address
+logger.info("Filtering to radius around address")
 address = st.text_input("Enter the address of interest", "1 Dundas st East, Toronto")
 walking_mins_str = st.selectbox(
     label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
@@ -49,7 +60,8 @@ km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
 location = geolocator.geocode(address)
 lat, lon = location.latitude, location.longitude
 filtered_crime_df["distance_to_address"] = [
-    geopy.distance.distance((lat, lon), (row.lat, row.lon)).km
+    #     geopy.distance.distance((lat, lon), (row.lat, row.lon)).km # too slow, doubles the run time
+    geopy.distance.great_circle((lat, lon), (row.lat, row.lon)).km
     for ix, row in filtered_crime_df.iterrows()
 ]
 filtered_crime_df_within_radius = (
@@ -78,7 +90,7 @@ st.text(f'{n_crimes} Crimes within {walking_mins_str} radius of {address} betwee
 #     addresses.append(address[0])
 # filtered_crime_df_within_radius["Address"] = addresses
 
-
+logger.info("Viz")
 #------------viz - counts on maps
 df_eda_per_address = (
     filtered_crime_df_within_radius
@@ -162,3 +174,4 @@ st.dataframe(
 )
 
 st.button("Re-run")
+logger.info(f"Seconds to run: {round(time.process_time() - start_time, 2)}")
