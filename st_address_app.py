@@ -98,6 +98,7 @@ filtered_crime_df_within_radius["Day of Week"] = pd.Categorical(
     categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 )
 n_crimes = filtered_crime_df_within_radius.shape[0]
+st.markdown(f'### Crime Analysis Report')
 st.text(f'{n_crimes} Crimes within {walking_mins_str} radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
 
 
