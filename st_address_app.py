@@ -17,6 +17,27 @@ logger = logging.getLogger("st_address_app.py")
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 start_time = time.process_time()
 
+def calc_distances(filtered_crime_df):
+    distances = []
+    nrows = filtered_crime_df.shape[0]
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    i = 1
+    percentage_complete_from_last_update = 0
+    for ix, row in filtered_crime_df.iterrows():
+        #     distance = geopy.distance.distance((lat, lon), (row.lat, row.lon)).km # too slow, doubles the run time
+        distance = geopy.distance.great_circle((lat, lon), (row.lat, row.lon)).km
+        distances.append(distance)
+        percentage_complete = int(min(i / nrows, 1) * 100)
+        if percentage_complete != percentage_complete_from_last_update:
+            status_text.text(f"{percentage_complete}% Complete Calculations")
+            progress_bar.progress(percentage_complete)
+            percentage_complete_from_last_update = percentage_complete
+        i += 1
+    progress_bar.empty()
+    status_text.text("100% Complete Calculations, Now Creating Visualizations")
+    return distances
+
 #-----------------setup
 st.title("Toronto Crime Address Analysis")
 st.text("This platform will allow you to investigate crime around a specific address of interest")
@@ -59,11 +80,7 @@ hours = int(walking_mins_str.split(" ")[0]) / 60
 km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
 location = geolocator.geocode(address)
 lat, lon = location.latitude, location.longitude
-filtered_crime_df["distance_to_address"] = [
-    #     geopy.distance.distance((lat, lon), (row.lat, row.lon)).km # too slow, doubles the run time
-    geopy.distance.great_circle((lat, lon), (row.lat, row.lon)).km
-    for ix, row in filtered_crime_df.iterrows()
-]
+filtered_crime_df["distance_to_address"] = calc_distances(filtered_crime_df)
 filtered_crime_df_within_radius = (
     filtered_crime_df
     [filtered_crime_df["distance_to_address"] <= km_radius]
@@ -82,6 +99,7 @@ filtered_crime_df_within_radius["Day of Week"] = pd.Categorical(
 )
 n_crimes = filtered_crime_df_within_radius.shape[0]
 st.text(f'{n_crimes} Crimes within {walking_mins_str} radius of {address} between {int(crime_df.occurrenceyear.min())} and {int(crime_df.occurrenceyear.max())}')
+
 
 # #-------------extract the address from the lat and long (too slow)
 # addresses = []
