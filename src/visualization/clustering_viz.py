@@ -20,17 +20,15 @@ class ClusteringViz():
     def __init__(self, filtered_crime_df, geolocator):
         self.filtered_crime_df = filtered_crime_df
         self.geolocator = geolocator
-        self.show_title()
+        self.show_intro_text()
         self.filter_to_neighbourhoods()
 
-    def show_title(self):
-        st.title("Toronto Crime Analysis")
-        st.text("Cluster analysis for the crimes chosen within the neighbourhoods chosen")
-        st.text("First we'll cluster the crimes together, and remove outliers, then we'll visualize these clusters and finally overlay them on the streets of Toronto")
+    def show_intro_text(self):
+        st.markdown("#### Cluster analysis for the crimes chosen within the neighbourhoods chosen")
 
     def filter_to_neighbourhoods(self):
-        nbhd_options = st.sidebar.multiselect(
-            label="Choose Neighbourhoods (May not render with all neighbourhoods chosen)",
+        nbhd_options = st.multiselect(
+            label="Choose Neighbourhoods",
             options=self.filtered_crime_df.neighbourhood.unique().tolist(),
             default=[
                 'Moss Park (73)',
@@ -44,10 +42,8 @@ class ClusteringViz():
     
     def cluster_crimes_and_remove_outliers(self):
         logger.info("Clustering")
-        st.sidebar.markdown('### Choose hdbscan parameters')
-        st.sidebar.text("(see here for more details: https://hdbscan.readthedocs.io/en/latest/parameter_selection.html)")
-        min_cluster_size = st.sidebar.selectbox(
-            label="Choose Minimum Cluster Size",
+        min_cluster_size = st.selectbox(
+            label="Choose Minimum Cluster Size For hdbscan",
             options=[10, 50, 100, 200, 400],
             index=2
         )
@@ -119,20 +115,6 @@ class ClusteringViz():
             address = self.geolocator.reverse(f"{row.avg_lat}, {row.avg_lon}")
             addresses.append(address[0])
         self.stats_per_cluster["Address"] = addresses
-    
-
-    def show_dataframes(self):
-        logger.info("Viz dfs")
-        st.text('Cluster Statistics: (you can hover over the address to see more details)')
-        st.dataframe(
-            self.stats_per_cluster[["n_per_cluster", "cluster", "Address", "avg_lat", "avg_lon"]]
-            .sort_values(by="n_per_cluster", ascending=False)
-        )
-        st.text('Cluster/Neighbourhood Statistics:')
-        st.dataframe(
-            self.stats_per_cluster_and_nbhd
-            .sort_values(by="n_per_cluster", ascending=False)
-        )
 
     def viz_clusters(self):
         logger.info("Viz clusters")
@@ -142,19 +124,20 @@ class ClusteringViz():
         p_clust = ggplot(
             self.filtered_crime_df_to_nbhds_outliers_removed,
             aes("lon", "lat", color="cluster")
-        ) + geom_point()
-        st.text("Here are the crimes, coloured by their cluster after removing outliers")
+        ) + geom_point() + ggtitle("Crimes Coloured By Cluster")
         st.pyplot(p_clust.draw())
         p_clust_center = ggplot(
             self.stats_per_cluster,
             aes("avg_lon", "avg_lat", color="cluster", size="n_per_cluster")
-        ) + geom_point()
-        st.text("Here are the centers of each cluster, sized by how many crimes occurred in that cluster")
+        ) + geom_point() + ggtitle("Cluster Centers Sized By Cluster Size")
         st.pyplot(p_clust_center.draw())
         p_nbhd = ggplot(
             self.filtered_crime_df_to_nbhds_outliers_removed,
-            aes("lon", "lat", color="neighbourhood")) + geom_point()
-        st.text("Here are the crimes, coloured by their neighbourhood after removing outliers")
+            aes("lon", "lat", color="neighbourhood")) + geom_point() + ggtitle("Crimes Coloured By Neighbourhood")
+        st.pyplot(p_nbhd.draw())
+        p_nbhd = ggplot(
+            self.filtered_crime_df_to_nbhds,
+            aes("lon", "lat", color="neighbourhood")) + geom_point() + ggtitle("Crimes Coloured By Neighbourhood No Outlier Removal")
         st.pyplot(p_nbhd.draw())
 
         st.text("Here are the crimes on the streets of Toronto, you can use this to isolate the locations of each cluster represented above")
@@ -177,7 +160,19 @@ class ClusteringViz():
             ],
         ))
 
-
+    def show_dataframes(self):
+        logger.info("Viz dfs")
+        st.text('Cluster Statistics: (you can hover over the address to see more details)')
+        st.dataframe(
+            self.stats_per_cluster[["n_per_cluster", "cluster", "Address", "avg_lat", "avg_lon"]]
+            .rename(columns={"Address": "Address of Cluster Center"})
+            .sort_values(by="n_per_cluster", ascending=False)
+        )
+        st.text('Cluster/Neighbourhood Statistics:')
+        st.dataframe(
+            self.stats_per_cluster_and_nbhd
+            .sort_values(by="n_per_cluster", ascending=False)
+        )
             
 
             

@@ -41,16 +41,15 @@ class AddressViz():
         self.filtered_crime_df = filtered_crime_df
         self.geolocator = geolocator
         self.min_year, self.max_year = min_year, max_year
-        self.show_title()
+        self.show_intro_text()
         self.filter_crime_df_within_radius()
 
-    def show_title(self):
-        st.title("Toronto Crime Address Analysis")
-        st.text("This platform will allow you to investigate crime around a specific self.address of interest")
+    def show_intro_text(self):
+        st.markdown("#### This platform will allow you to investigate crime around a specific self.address of interest")
 
     def filter_crime_df_within_radius(self):
-        logger.info("Filtering to radius around self.address")
-        self.address = st.text_input("Enter the self.address of interest", "1 Dundas st East, Toronto")
+        logger.info("Filtering to radius around address")
+        self.address = st.text_input("Enter the address of interest", "1 Dundas st East, Toronto")
         self.walking_mins_str = st.selectbox(
             label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
             options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],

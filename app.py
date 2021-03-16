@@ -19,14 +19,14 @@ geolocator = Nominatim(user_agent="toronto_crime_app")
 #-----------------setup
 crime_df = pd.read_csv(
     "./data/processed/crime_data.csv").rename(columns={"long": "lon"})
-
-#---------------sidebar filtering
-app_type = st.sidebar.selectbox(
-    label="Choose an Application",
+st.title("Toronto Crime Analysis")
+app_type = st.selectbox(
+    label="Choose Analysis Type",
     options=["Address Analysis", "Neighbourhood Comparison", "Neighbourhood Exploration"],
     index=0
 )
 
+#---------------sidebar filtering
 logger.info("Sidebar filtering")
 st.sidebar.markdown('### Choose Your Filters')
 crime_options = st.sidebar.multiselect(
@@ -58,8 +58,8 @@ elif app_type == "Neighbourhood Exploration":
     clust_viz.cluster_crimes_and_remove_outliers()
     clust_viz.set_stats_per_cluster()
     clust_viz.add_addresses_per_cluster()
-    clust_viz.show_dataframes()
     clust_viz.viz_clusters()
+    clust_viz.show_dataframes()
 elif app_type == "Neighbourhood Comparison":
     with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
             counties = json.load(f)
