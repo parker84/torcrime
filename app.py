@@ -6,7 +6,9 @@ import os
 import time
 from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
+from src.visualization.comparison_viz import CompareNeighbourhoods
 from geopy.geocoders import Nominatim
+import json
 
 #----------------helpers
 logger = logging.getLogger(__name__)
@@ -58,6 +60,11 @@ elif app_type == "Neighbourhood Exploration":
     clust_viz.add_addresses_per_cluster()
     clust_viz.show_dataframes()
     clust_viz.viz_clusters()
+elif app_type == "Neighbourhood Comparison":
+    with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+            counties = json.load(f)
+    comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
+    comp_viz.viz()
 
 st.button("Re-run")
 logger.info(f"Seconds to run: {round(time.process_time() - start_time, 2)}")
