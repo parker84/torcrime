@@ -86,16 +86,21 @@ class AddressViz():
         #------------viz - counts on maps
         df_eda_per_address = (
             self.filtered_crime_df_within_radius
-            .groupby(["lat", "lon"])
+            .groupby(["lat", "lon", "neighbourhood"])
             .size().reset_index().rename(columns={0:"Number of Crimes"})
         )
+        plot_color = st.selectbox(
+            label="Colour the Graph Below by:",
+            options=["Neighbourhood", "Number of Crimes"],
+            index=0
+        )
         p = ggplot(
-            df_eda_per_address.rename(columns={"lat": "latitude", "lon": "longitude"}),
+            df_eda_per_address.rename(columns={"lat": "latitude", "lon": "longitude", "neighbourhood": "Neighbourhood"}),
             aes(
                 "longitude", "latitude", 
                 size="Number of Crimes", 
-                fill="Number of Crimes",
-                color="Number of Crimes"
+                fill=plot_color,
+                color=plot_color
             )
         ) + geom_point() + ggtitle(f'Crimes within {self.walking_mins_str} radius of {self.address}')
         st.pyplot(p.draw())
