@@ -4,10 +4,6 @@ from src.models.predict_model import Predict
 import plotly.express as px
 import numpy as np
 
-DAYS_OF_WEEK = [
-    "Monday", "Tuesday", "Wednesday", "Thursday", 
-    "Friday", "Saturday", "Sunday"
-]
 
 class CompareNeighbourhoods():
 
