@@ -111,9 +111,22 @@ class ClusteringViz():
     def add_addresses_per_cluster(self):
         logger.info("Getting addresses")
         addresses = []
+        nrows = self.stats_per_cluster.shape[0]
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        i = 1
+        percentage_complete_from_last_update = 0
         for ix, row in self.stats_per_cluster[["avg_lat", "avg_lon"]].iterrows():
             address = self.geolocator.reverse(f"{row.avg_lat}, {row.avg_lon}")
             addresses.append(address[0])
+            percentage_complete = int(min(i / nrows, 1) * 100)
+            if percentage_complete != percentage_complete_from_last_update:
+                status_text.text(f"{percentage_complete}% Complete Calculations")
+                progress_bar.progress(percentage_complete)
+                percentage_complete_from_last_update = percentage_complete
+            i += 1
+        progress_bar.empty()
+        status_text.text("100% Complete Calculations, Now Creating Visualizations")
         self.stats_per_cluster["Address"] = addresses
 
     def viz_clusters(self):
