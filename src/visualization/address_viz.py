@@ -45,7 +45,7 @@ class AddressViz():
         self.filter_crime_df_within_radius()
 
     def show_intro_text(self):
-        st.markdown("#### This platform will allow you to investigate crime around a specific self.address of interest")
+        st.markdown("#### This platform will allow you to investigate crime around a specific address of interest")
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
