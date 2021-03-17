@@ -145,10 +145,10 @@ class AddressViz():
         )
     def _groupby_var_and_line_chart(self, df, var):
         df_eda = (
-        df
-        .groupby(var)
-        .size().reset_index().rename(columns={0:"Number of Crimes"})
-    )
+            df
+            .groupby(var)
+            .size().reset_index().rename(columns={0:"Number of Crimes"})
+        )
         p = ggplot(
             df_eda,
             aes(var, "Number of Crimes", group=1)
@@ -157,10 +157,10 @@ class AddressViz():
 
     def _groupby_2_vars_and_line_chart(self, df, variables):
         df_eda = (
-        df
-        .groupby(variables)
-        .size().reset_index().rename(columns={0:"Number of Crimes"})
-    )
+            df
+            .groupby(variables)
+            .size().reset_index().rename(columns={0:"Number of Crimes"})
+        )
         p = ggplot(
             df_eda,
             aes(variables[0], "Number of Crimes", group=variables[1], color=variables[1])
