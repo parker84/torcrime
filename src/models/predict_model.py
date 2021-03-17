@@ -94,7 +94,7 @@ class Predict():
             on=["nbhd_id"], how="left"
         )
         assert cases_w_sq_metres.shape[0] == cases_per_nbhd.shape[0], "join is off"
-        cases_w_sq_metres["Estimated Probability of a Crime Occuring Per Hour and Per Square km"] = (
+        cases_w_sq_metres["Probability of Crime"] = (
             cases_w_sq_metres.expected_crimes_per_hour
             / (cases_w_sq_metres.sq_metres * 1e-6)
         ) * 100
@@ -108,7 +108,7 @@ class Predict():
             on=["nbhd_id"], how="left"
         )
         assert cases_w_pop.shape[0] == cases_per_nbhd.shape[0], "join is off"
-        cases_w_pop["Estimated Probability of a Crime Occuring Per Hour and Per 10k People"] = (
+        cases_w_pop["Probability of Crime"] = (
             cases_w_pop.expected_crimes_per_hour
             / (cases_w_pop.population / 10000)
         ) * 100
