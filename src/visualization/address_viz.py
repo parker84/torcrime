@@ -86,8 +86,14 @@ class AddressViz():
         #------------viz - counts on maps
         df_eda_per_address = (
             self.filtered_crime_df_within_radius
-            .groupby(["lat", "lon", "neighbourhood"])
-            .size().reset_index().rename(columns={0:"Number of Crimes"})
+            .assign(
+                    latitude = self.filtered_crime_df_within_radius.lat.round(4),
+                    longitude = self.filtered_crime_df_within_radius.lon.round(4)
+            )
+            .groupby(["latitude", "longitude"])
+            .neighbourhood
+            .agg(["max", "size"])
+            .reset_index().rename(columns={"max":"neighbourhood", "size": "Number of Crimes"})
         )
         plot_color = st.selectbox(
             label="Colour the Graph Below by:",
@@ -95,7 +101,7 @@ class AddressViz():
             index=0
         )
         p = ggplot(
-            df_eda_per_address.rename(columns={"lat": "latitude", "lon": "longitude", "neighbourhood": "Neighbourhood"}),
+            df_eda_per_address.rename(columns={"neighbourhood": "Neighbourhood"}),
             aes(
                 "longitude", "latitude", 
                 size="Number of Crimes", 
