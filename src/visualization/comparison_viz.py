@@ -2,6 +2,7 @@ import streamlit as st
 from src.models.averaging_model import AvgModel
 from src.models.predict_model import Predict
 import plotly.express as px
+import numpy as np
 
 DAYS_OF_WEEK = [
     "Monday", "Tuesday", "Wednesday", "Thursday", 
@@ -83,6 +84,17 @@ class CompareNeighbourhoods():
             .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         )
         st.plotly_chart(fig)
+        st.dataframe(
+            counts
+            .rename(columns={
+                "neighbourhood": "Neighbourhood"
+            })
+            .sort_values(by=["Number of Crimes"], ascending=False)
+            .assign(Rank=np.arange(counts.shape[0])+1)
+            [[
+                "Rank", "Number of Crimes", "Neighbourhood"
+            ]]
+        )
 
     def _viz_per_10k(self):
         preds_per_10k = self.predicter.predict_cases_per_10k_people_per_nbhd_per_hour()
@@ -101,6 +113,19 @@ class CompareNeighbourhoods():
             .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         )
         st.plotly_chart(fig)
+        st.dataframe(
+            preds_per_10k
+            .rename(columns={
+                "crimes_counts_per_nbhd": "Number of Crimes",
+                "population": "Population",
+                "neighbourhood": "Neighbourhood"
+            })
+            .sort_values(by=["Probability of Crime"], ascending=False)
+            .assign(Rank=np.arange(preds_per_10k.shape[0])+1)
+            [[
+                "Rank", "Probability of Crime", "Neighbourhood", "Number of Crimes", "Population"
+            ]]
+        )
 
     def _viz_per_km(self):
         preds_per_km = self.predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
@@ -119,3 +144,16 @@ class CompareNeighbourhoods():
             .update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         )
         st.plotly_chart(fig)
+        preds_per_km["Square Kms"] = preds_per_km["sq_metres"] * 1e-6
+        st.dataframe(
+            preds_per_km
+            .rename(columns={
+                "crimes_counts_per_nbhd": "Number of Crimes",
+                "neighbourhood": "Neighbourhood"
+            })
+            .sort_values(by=["Probability of Crime"], ascending=False)
+            .assign(Rank=np.arange(preds_per_km.shape[0])+1)
+            [[
+                "Rank", "Probability of Crime", "Neighbourhood", "Number of Crimes", "Square Kms"
+            ]]
+        )
