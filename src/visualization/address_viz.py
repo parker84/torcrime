@@ -77,12 +77,51 @@ class AddressViz():
             categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         )
         n_crimes = filtered_crime_df_within_radius.shape[0]
-        st.markdown(f'### Crime Analysis Report')
+        st.markdown(f'## Address Crime Analysis Report')
         st.text(f'{n_crimes} Crimes within {self.walking_mins_str} radius of {self.address} between {int(self.min_year)} and {int(self.max_year)}')
         self.filtered_crime_df_within_radius = filtered_crime_df_within_radius
-                
+    
+    def viz_close_neighbourhood_rankings(self):
+        neighbourhood_rankings = self._get_neighbourhood_rankings()
+        close_nbhds = (
+            self.filtered_crime_df_within_radius
+            .groupby("neighbourhood").size().reset_index()
+            .rename(columns={0: "Crimes Within Radius"})
+        )
+        close_rankings = (
+            neighbourhood_rankings.merge(close_nbhds, how="inner", on="neighbourhood")
+            .sort_values(by=["Crimes Within Radius"], ascending=False)
+        )
+        st.markdown(
+            f"""
+            #### Ranking of Neighbourhoods Close to You
+            The Worst Neighbourhood In Your Radius is in the **{round(close_rankings['Neighbourhood Percentile of Crime'].iloc[0])}th 
+            Percentile** For Amount of Crime (100th being the neighbourhood with the most crime)
+            """
+        )
+        st.dataframe(
+            close_rankings
+            .rename(columns={
+                "neighbourhood": "Neighbourhood", 
+                "Number of Crimes": "Crimes in Neighbourhood",
+                "Neighbourhood Percentile of Crime": "Percentile of Crime",
+                "Neighbourhood Percentile of Crimes Per Person": "Percentile of Crimes Per Person",
+                "Neighbourhood Percentile of Crimes Per Square Km": "Percentile of Crimes Per Square Km"
+            })
+            [[
+                "Neighbourhood", 
+                "Percentile of Crime",
+                "Crimes Within Radius",
+                "Crimes in Neighbourhood",
+                "Percentile of Crimes Per Person", 
+                "Percentile of Crimes Per Square Km"
+            ]]
+        )
+
+
     def viz_crime_counts_on_map(self):
         logger.info("Viz Crime Counts on Maps")
+        st.markdown("#### Visualizing Crimes Geographically")
         #------------viz - counts on maps
         df_eda_per_address = (
             self.filtered_crime_df_within_radius
@@ -119,7 +158,7 @@ class AddressViz():
             ),
             layers=[
                 pdk.Layer(
-                    'ScatterplotLayer',
+                    'HeatmapLayer',
                     self.filtered_crime_df_within_radius,
                     get_position=['lon', 'lat'],
                     auto_highlight=True,
@@ -130,6 +169,7 @@ class AddressViz():
         ))
 
     def viz_eda_plots(self):
+        st.markdown("#### Visualizing Crimes By Time")
         self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Hour of Day")
         self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Year")
         self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Day of Week")
@@ -138,6 +178,7 @@ class AddressViz():
         self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Day of Week", "Type of Crime"])
 
     def show_dataframes(self):
+        st.markdown("#### Crime Details Within Radius")
         st.text(f'Crimes within {self.walking_mins_str} radius of {self.address} between {int(self.min_year)} and {int(self.max_year)}')
         self.filtered_crime_df_within_radius["Day of Week"] = (
             self.filtered_crime_df_within_radius["Day of Week"].astype(str)
@@ -172,3 +213,22 @@ class AddressViz():
             aes(variables[0], "Number of Crimes", group=variables[1], color=variables[1])
         ) + geom_line() + geom_point() + ggtitle(f'Crimes within {self.walking_mins_str} radius of {self.address}')
         st.pyplot(p.draw())
+
+    def _get_neighbourhood_rankings(self):
+        neighbourhood_stats = (
+            self.filtered_crime_df
+            .groupby(["neighbourhood", "population", "sq_metres"])
+            .size().reset_index()
+            .rename(columns={0: "Number of Crimes"})
+        )
+        assert neighbourhood_stats.shape[0] == neighbourhood_stats.neighbourhood.unique().shape[0], "dups in primay key"
+        neighbourhood_stats["Crimes Per Person"] = (
+            neighbourhood_stats["Number of Crimes"] / neighbourhood_stats.population
+        )
+        neighbourhood_stats["Crimes Per Square Km"] = (
+            neighbourhood_stats["Number of Crimes"] / (neighbourhood_stats.sq_metres * 1e-6)
+        )
+        neighbourhood_stats["Neighbourhood Percentile of Crime"] = (neighbourhood_stats["Number of Crimes"].rank(pct=True)*100).round(2)
+        neighbourhood_stats["Neighbourhood Percentile of Crimes Per Person"] = (neighbourhood_stats["Crimes Per Person"].rank(pct=True)*100).round(2)
+        neighbourhood_stats["Neighbourhood Percentile of Crimes Per Square Km"] = (neighbourhood_stats["Crimes Per Square Km"].rank(pct=True)*100).round(2)
+        return neighbourhood_stats

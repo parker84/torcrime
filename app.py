@@ -50,6 +50,7 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 
 if app_type == "Address Analysis":
     address_viz = AddressViz(filtered_crime_df, geolocator, crime_df.occurrenceyear.min(), crime_df.occurrenceyear.max())
+    address_viz.viz_close_neighbourhood_rankings()
     address_viz.viz_crime_counts_on_map()
     address_viz.viz_eda_plots()
     address_viz.show_dataframes()
