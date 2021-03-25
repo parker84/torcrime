@@ -4,9 +4,9 @@
 ```sh
 #---------deploying
 # create the app
-heroku create toronto-crime-address-app
+heroku create toronto-crime
 # add the app as a remote git branch (https://devcenter.heroku.com/articles/git#for-an-existing-heroku-app)
-heroku git:remote -a toronto-crime-address-app
+heroku git:remote -a toronto-crime
 # push the code up (for pushing a non-main branch, but wasn't working properly: https://stackoverflow.com/questions/2971550/heroku-how-to-push-different-local-git-branches-to-heroku-master)
 git push heroku main
 # git push https://git.heroku.com/toronto-crime-dash-app.git main
