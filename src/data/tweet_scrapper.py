@@ -23,24 +23,26 @@ class TweetScrapper():
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
 
-    def get_bulk_tweets_from_to_user(self, user_id, min_datetime):
+    def get_bulk_tweets_from_to_user(self, user_id, min_datetime, ops_tweet=True):
         """
         grab all the tweets from the toronto police accounts (from:TPSOperations OR from:TorontoPolice)
         since min_datetime
 
         Args:
-            min_datetime (datetime.datetime) ex: datetime.datetime(2021, 3, 27, 15, 48, 35)
+            min_datetime (datetime.datetime) ex: datetime.datetime(2014, 1, 1)
         """
         tweets = []
         min_date = str(min_datetime).split(" ")[0]
         for tweet in tqdm(tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date).items()):
             dict_tweet = tweet._json
             dict_tweet["user_name"] = dict_tweet["user"]["name"]
+            if ops_tweet:
+                dict_tweet = self._extract_entities_from_ops_tweet(dict_tweet)
             tweets.append(dict_tweet)
         tweet_df = pd.DataFrame(tweets)
         return tweet_df
     
-    def get_recent_tweets_from_to_user(self, user_id, min_datetime):
+    def get_tweets_from_last_n_secs(self, user_id, secs, ops_tweet=True):
         """
         grab all the tweets from the toronto police accounts (from:TPSOperations OR from:TorontoPolice)
         since min_datetime
@@ -48,6 +50,7 @@ class TweetScrapper():
         Args:
             min_datetime (datetime.datetime) ex: datetime.datetime(2021, 3, 27, 15, 48, 35)
         """
+        min_datetime = datetime.datetime.now().astimezone(self.utc) - datetime.timedelta(seconds=secs)
         tweets = []
         min_date = str(min_datetime).split(" ")[0]
         for tweet in tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date).items():
@@ -59,6 +62,8 @@ class TweetScrapper():
             if tweet_dt < min_datetime:
                 break
             dict_tweet["user_name"] = dict_tweet["user"]["name"]
+            if ops_tweet:
+                dict_tweet = self._extract_entities_from_ops_tweet(dict_tweet)
             tweets.append(dict_tweet)
         tweet_df = pd.DataFrame(tweets)
         return tweet_df
@@ -66,21 +71,37 @@ class TweetScrapper():
     def save_tweetdf_to_db(self, tweet_df, table_name, if_exists="append"):
         if tweet_df.shape[0] > 0:
             tweet_df_sel = tweet_df[[
-                "id", "created_at", "text", "retweet_count", "favorite_count", "user_name"
+                "id", "created_at", "text", 
+                "address", "event", "is_update", "is_event",
+                "user_name", "retweet_count", "favorite_count"
             ]]
             logger.info("tweets that occurred in the last 10 seconds:")
             logger.info(tweet_df_sel)
             tweet_df_sel.to_sql(name=table_name, con=self.engine, if_exists=if_exists)
-    
-    def get_tweets_from_last_n_secs(self, user_id, secs=10):
-        dt_n_secs_ago = datetime.datetime.now().astimezone(self.utc) - datetime.timedelta(seconds=secs)
-        return self.get_recent_tweets_from_to_user(user_id, dt_n_secs_ago)
+
+    def _extract_entities_from_ops_tweet(self, dict_tweet):
+        text = dict_tweet["text"]
+        lines = text.split("\n")
+        if lines[0].endswith(":") or lines[0].lower().endswith("update"):
+            dict_tweet["address"] = lines[1].replace("&amp;", "and").replace("+", "and") + ", Toronto"
+            dict_tweet["event"] = lines[0].split(":")[0].lower()
+            dict_tweet["is_update"] = lines[0].lower().endswith("update")
+            dict_tweet["is_event"] = True
+        else:
+            dict_tweet["is_event"] = False
+            dict_tweet["address"] = "null"
+            dict_tweet["event"] = "null"
+            dict_tweet["is_update"] = "null"
+        return dict_tweet
+
+
+#--------------Execution functions
 
 def replace_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1)):
     scrapper = TweetScrapper()
     res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
     scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
-    res_df = scrapper.get_bulk_tweets_from_to_user("TPSOperations", since)
+    res_df = scrapper.get_bulk_tweets_from_to_user("TPSOperations", since, ops_tweet=True)
     scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="replace")
 
 def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
@@ -93,7 +114,7 @@ def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
             logger.info(f'Making request number: {i+1}')
         res_df = scrapper.get_tweets_from_last_n_secs("TorontoPolice", secs)
         scrapper.save_tweetdf_to_db(res_df, "streaming_raw_to_police_tweets", if_exists="append")
-        res_df = scrapper.get_tweets_from_last_n_secs("TPSOperations", secs)
+        res_df = scrapper.get_tweets_from_last_n_secs("TPSOperations", secs, ops_tweet=True)
         scrapper.save_tweetdf_to_db(res_df, "streaming_raw_tps_ops_tweets", if_exists="append")
         i += 1
         time.sleep(secs)
