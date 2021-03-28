@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from tqdm import tqdm
 import datetime
 import coloredlogs
+from geopy.geocoders import Nominatim
 import logging
 import pytz
 import os
@@ -22,6 +23,7 @@ class TweetScrapper():
         self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
+        self.geolocator = Nominatim(user_agent="toronto_crime_app")
 
     def get_bulk_tweets_from_to_user(self, user_id, min_datetime, ops_tweet=True):
         """
@@ -72,7 +74,7 @@ class TweetScrapper():
         if tweet_df.shape[0] > 0:
             tweet_df_sel = tweet_df[[
                 "id", "created_at", "text", 
-                "address", "event", "is_update", "is_event",
+                "address", "lat", "lon", "event", "is_update", "is_event",
                 "user_name", "retweet_count", "favorite_count"
             ]]
             logger.info("tweets that occurred in the last 10 seconds:")
@@ -87,11 +89,28 @@ class TweetScrapper():
             dict_tweet["event"] = lines[0].split(":")[0].lower()
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
             dict_tweet["is_event"] = True
+            try:
+                location = self.geolocator.geocode(dict_tweet["address"])
+            except Exception as err:
+                logger.error(f"Error calculating the distances: {err}, sleeping for 100s and then trying again")
+                time.sleep(100)
+                try:
+                    location = self.geolocator.geocode(dict_tweet["address"])
+                except Exception as err:
+                    import ipdb; ipdb.set_trace()
+            if location is not None:
+                dict_tweet["lat"] = location.latitude
+                dict_tweet["lon"] = location.longitude
+            else: 
+                dict_tweet["lat"] = "null"
+                dict_tweet["lon"] = "null"
         else:
             dict_tweet["is_event"] = False
             dict_tweet["address"] = "null"
             dict_tweet["event"] = "null"
             dict_tweet["is_update"] = "null"
+            dict_tweet["lat"] = "null"
+            dict_tweet["lon"] = "null"
         return dict_tweet
 
 
@@ -99,10 +118,10 @@ class TweetScrapper():
 
 def replace_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1)):
     scrapper = TweetScrapper()
-    res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
-    scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
     res_df = scrapper.get_bulk_tweets_from_to_user("TPSOperations", since, ops_tweet=True)
     scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="replace")
+    res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
+    scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
 
 def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
     logger.info('Starting to listen')
@@ -112,10 +131,10 @@ def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
     while True != False:
         if i % log_every == 0:
             logger.info(f'Making request number: {i+1}')
-        res_df = scrapper.get_tweets_from_last_n_secs("TorontoPolice", secs)
-        scrapper.save_tweetdf_to_db(res_df, "streaming_raw_to_police_tweets", if_exists="append")
         res_df = scrapper.get_tweets_from_last_n_secs("TPSOperations", secs, ops_tweet=True)
         scrapper.save_tweetdf_to_db(res_df, "streaming_raw_tps_ops_tweets", if_exists="append")
+        res_df = scrapper.get_tweets_from_last_n_secs("TorontoPolice", secs)
+        scrapper.save_tweetdf_to_db(res_df, "streaming_raw_to_police_tweets", if_exists="append")
         i += 1
         time.sleep(secs)
             
