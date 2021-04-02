@@ -39,6 +39,8 @@ python ./dash_app.py
 export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
 # run all tests to ensure its working properly:
 python -m unittest discover ./tests/
+# running all pytests (for the tweet system)
+python3 -m pytest ./tests/pytests/ # Note: if you want to use a debugger (like ipdb) add --capture=no to the end of this
 ```
 
 ### Running the data cleaning (not required unless you're updating the data)
