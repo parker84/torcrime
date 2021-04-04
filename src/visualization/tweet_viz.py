@@ -113,6 +113,6 @@ class TweetViz():
         logger.info("Filtered to radius around address")
     
     def show_dataframes(self):
-        st.markdown("#### Crime Reports Within Radius ([sign up to see more details and receive alerts](https://torontocrime.myshopify.com/pages/early-access))")
+        st.markdown("#### Recent Crime Reports Within Radius ([sign up to see more details and receive alerts](https://torontocrime.myshopify.com/pages/early-access))")
         st.dataframe(self.filtered_crime_df_within_radius)
     
