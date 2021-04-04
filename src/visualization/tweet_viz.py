@@ -16,7 +16,7 @@ import streamlit as st
 
 #------------------Initialize 
 DEFAULT_ADDRESS = "1 Dundas st East, Toronto"
-CRIME_COLS = ["created_at", "crime", "address", "text"]
+CRIME_COLS = ["Date of Report", "Crime", "Address", "Time of Report", "Full Text"]
 CRIME_MAPPINGS = {
     "fire": "Fire",
     "shooting": "Shooting",
@@ -53,7 +53,10 @@ logger.info(f"% of Rows Removed bc missing lat/lon: {perc_tweets_removed*100}%")
 crime_tweets_cleaned["crime"] = crime_tweets_cleaned["event"].replace(CRIME_MAPPINGS)
 crime_tweets_cleaned = crime_tweets_cleaned[crime_tweets_cleaned.crime.isin(CRIME_OPTIONS)]
 crime_tweets_cleaned["created_at"] = pd.to_datetime(crime_tweets_cleaned["created_at"])
-crime_tweets_cleaned = crime_tweets_cleaned.sort_values(by="created_at", ascending=False)
+crime_tweets_cleaned["created_at_est"] = crime_tweets_cleaned["created_at"].dt.tz_convert("EST")
+crime_tweets_cleaned["Date of Report"] = crime_tweets_cleaned["created_at_est"].dt.date
+crime_tweets_cleaned["Time of Report"] = crime_tweets_cleaned["created_at_est"].dt.time
+crime_tweets_cleaned = crime_tweets_cleaned.sort_values(by="created_at_est", ascending=False)
 logger.info(f"Value Counts of Crimes: {crime_tweets_cleaned.crime.value_counts().head(40)}%")
 
 #------------------Helpers
@@ -109,7 +112,13 @@ class TweetViz():
             [self.filtered_crime_df["distance_to_address"] <= km_radius]
         )
         n_crimes = filtered_crime_df_within_radius.shape[0]
-        self.filtered_crime_df_within_radius = filtered_crime_df_within_radius[CRIME_COLS]
+        self.filtered_crime_df_within_radius = filtered_crime_df_within_radius.rename(
+            columns={
+                "crime": "Crime", 
+                "address": "Address", 
+                "text": "Full Text"
+            }
+        )[CRIME_COLS]
         logger.info("Filtered to radius around address")
     
     def show_dataframes(self):
