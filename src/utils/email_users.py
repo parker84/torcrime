@@ -4,6 +4,7 @@ import logging
 import geopy.distance
 from src.utils.emailer import Emailer
 import os
+import pandas as pd
 
 class EmailUsers():
 
@@ -18,13 +19,34 @@ class EmailUsers():
         self.emailer = Emailer()
         coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=self.logger)
     
-    def email_the_right_users(self, sel_user_df, tweet_text, tweet_crime):
+    def email_the_right_users(self, sel_user_df, tweet):
+        """[summary]
+
+        Args:
+            sel_user_df (pandas dataframe): isolated to users within radius, and having the columns: ["first_name", "email"]
+            tweet (row of a pandas dataframe): with the following columns: ["text", "crime", "address", "created_at"]
+        """
         self.logger.info("Sending emails")
+        subject = f"TorCrime | {tweet.crime} @ {tweet.address}"
+        tweet["created_at_est"] = pd.to_datetime(tweet["created_at"]).tz_convert("EST")
         for ix, row in tqdm(sel_user_df.iterrows()):
+            contents = [
+                f"Hi {row.first_name},\n",
+                "There has been a crime reported near your address.\n\n",
+                f"Crime: {tweet.crime}\n",
+                f"Location of Crime: {tweet.address}\n",
+                f"Time of Crime: {str(tweet.created_at_est.time())}\n",
+                f"Date of Crime: {str(tweet.created_at_est.date())}\n\n",
+                f"See full details below:\n",
+                f"{tweet.text}\n\n",
+                "Thank you for using our service and please let us know if there's anything we can do to improve it for you.\n\n",
+                "Best,\n",
+                "Brydon\n",
+            ]
             self.emailer.send_email(
                 reciever_email=row.email,
-                contents=tweet_text,
-                subject=tweet_crime
+                contents=contents,
+                subject=subject
             )
 
     def filter_to_users_near_the_event(self, tweet_lat, tweet_lon):

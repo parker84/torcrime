@@ -9,16 +9,30 @@ def user_df():
         "lat": [43.60, 50, 43.63], 
         "lon": [-79.35, -90, -79.55], 
         "km_radius": [3, 3, 3], 
-        "email": ["toronto.crime123@gmail.com"] * 3
+        "email": ["toronto.crime123@gmail.com"] * 3,
+        "first_name": ["Jane"] * 3
     })
     return user_df
 
-def test_email_users(user_df):
+@pytest.fixture
+def tweet_df():
+    tweet_df = pd.DataFrame({
+        "created_at": ["Sun Apr 04 19:34:55 +0000 2021", "Sun Apr 04 05:50:03 +0000 2021"],
+        "crime": ["Stabbing", "Shooting"],
+        "address": ["Chestnut St and Dundas St W, Toronto", "12 Charlotte St, Toronto"],
+        "text": [
+            "STABBING: Chestnut St + Dundas St W * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3",
+            "SHOOTING: 12 Charlotte St * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3"
+        ]
+    })
+    return tweet_df
+
+def test_email_users(user_df, tweet_df):
     email_users = EmailUsers(user_df)
     sel_users = email_users.filter_to_users_near_the_event(43.60, -79.35)
-    email_users.email_the_right_users(
-        sel_users,
-        "STABBING: Chestnut St + Dundas St W * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3", 
-        "Stabbing"
-    )
-    assert sel_users.shape[0] == 1
+    assert sel_users.shape[0] == 1, "should only be one user in the radius"
+    for ix, row in tweet_df.iterrows():
+        email_users.email_the_right_users(
+            sel_users,
+            row
+        )
