@@ -17,12 +17,13 @@ def user_df():
 @pytest.fixture
 def tweet_df():
     tweet_df = pd.DataFrame({
-        "created_at": ["Sun Apr 04 19:34:55 +0000 2021", "Sun Apr 04 05:50:03 +0000 2021"],
-        "crime": ["Stabbing", "Shooting"],
-        "address": ["Chestnut St and Dundas St W, Toronto", "12 Charlotte St, Toronto"],
+        "created_at": ["Sun Apr 04 19:34:55 +0000 2021", "Sun Apr 04 05:50:03 +0000 2021", "Fri Mar 26 14:04:08 +0000 2021"],
+        "crime": ["Stabbing", "Shooting", "Person with a Knife"],
+        "address": ["Chestnut St and Dundas St W, Toronto", "12 Charlotte St, Toronto", "Markham St and College St, Toronto"],
         "text": [
             "STABBING: Chestnut St + Dundas St W * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3",
-            "SHOOTING: 12 Charlotte St * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3"
+            "SHOOTING: 12 Charlotte St * 4:58 pm * - Reports of man stabbed - Reports it may have been a robbery - Sus… https://t.co/jfQLPRTNZ3",
+            "PERSON WITH A KNIFE: Markham St + College St - officers have checked the area, unable to locate male - officers are… https://t.co/XDV9uWCO45"
         ]
     })
     return tweet_df
