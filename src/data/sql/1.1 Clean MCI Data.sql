@@ -10,7 +10,7 @@ select
     ,"MCI" as crime_type
     ,occurrencedayofweek
     ,occurrencehour
-    ,premisetype
+    ,premises_type as premisetype
     ,occurrencedate
     ,occurrenceyear
     ,"Long" as long

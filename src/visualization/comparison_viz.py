@@ -20,7 +20,7 @@ class CompareNeighbourhoods():
         st.markdown("#### This dashboard will allow you to compare crime rates between different neighbourhoods")
 
     def filter_df_by_time(self):
-        year_range = st.slider("Year Range To Investigate", 2014, 2019, (2014, 2019))
+        year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))
         hour_range = st.slider("Hour of Day Range To Investigate", 0, 24, (0, 24))
         days = st.multiselect(
             label="Days of Week To Investigate",
@@ -65,7 +65,7 @@ class CompareNeighbourhoods():
 
     def _viz_counts(self):
         counts = self.predicter.get_num_crimes()
-        assert counts.shape[0] == len(self.counties["features"])
+        assert counts.shape[0] >= len(self.counties["features"])
         fig=(
             px.choropleth(counts, 
                 geojson=self.counties, 
