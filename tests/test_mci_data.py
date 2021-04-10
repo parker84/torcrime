@@ -18,7 +18,7 @@ class TestMCIData(unittest.TestCase):
     df.info()      
     logger.info(df_desc)
     nulls = df.isnull().sum(axis=0)
-    chosen_cols = ["event_unique_id", "Hood_ID", "MCI", "offence", "premisetype", 
+    chosen_cols = ["event_unique_id", "Hood_ID", "MCI", "offence", "premises_type", 
                     "Neighbourhood", "occurrencedayofweek", "occurrencehour", 
                     "occurrencedate", "occurrenceyear"]
 

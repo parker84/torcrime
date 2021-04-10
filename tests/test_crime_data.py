@@ -17,7 +17,8 @@ class TestCrimeData(unittest.TestCase):
     df_desc = df.describe()
     df.info()      
     logger.info(df_desc)
-    nulls = df.isnull().sum(axis=0)
+    nulls = df[df.nbhd_id != "NSA"].isnull().sum(axis=0)
+    nsa_events = df[df.nbhd_id == "NSA"]
     
     def test_nulls(self):
         assert self.nulls[
@@ -80,6 +81,12 @@ class TestCrimeData(unittest.TestCase):
         crimes_per_premise.sort_values(by=["premisetype", "n"], ascending=False, inplace=True)
         self.logger.info(crimes_per_premise)
         assert crimes_per_premise.iloc[0]["crime_type"] == "Assault", "most common outside crime not assault"
+
+    def test_nsa_events(self):
+        self.assertLess(
+            self.nsa_events.shape[0] / self.df.shape[0] * 100,
+            2, "nsa events are more than 2% of all crimes"
+        )
 
 if __name__ == "__main__":
     unittest.main()
