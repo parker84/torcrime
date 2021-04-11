@@ -37,3 +37,8 @@ def test_email_users(user_df, tweet_df):
             sel_users,
             row
         )
+
+def test_email_users_null_lat_lon(user_df, tweet_df):
+    email_users = EmailUsers(user_df)
+    sel_users = email_users.filter_to_users_near_the_event("null", "null")
+    assert sel_users.shape[0] == 0, "shouldn't return anything if there's no"

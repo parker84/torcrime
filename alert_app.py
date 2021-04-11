@@ -11,6 +11,7 @@ coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 def get_user_df_and_send_emails(tweet_df):
     builder = BuildUserDf()
     builder.get_and_set_customer_df()
+    builder.get_and_set_order_df()
     for ix, row in tweet_df.iterrows():
         # if row.lat != "null":
         #     import ipdb; ipdb.set_trace()
@@ -35,8 +36,8 @@ def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
         if res_df.shape[0] > 0:
             get_user_df_and_send_emails(res_df)
         scrapper.save_tweetdf_to_db(res_df, "streaming_raw_tps_ops_tweets", if_exists="append")
-        res_df = scrapper.get_tweets_from_last_n_secs("TorontoPolice", secs)
-        scrapper.save_tweetdf_to_db(res_df, "streaming_raw_to_police_tweets", if_exists="append")
+        # res_df = scrapper.get_tweets_from_last_n_secs("TorontoPolice", secs)
+        # scrapper.save_tweetdf_to_db(res_df, "streaming_raw_to_police_tweets", if_exists="append")
         i += 1
         time.sleep(secs)
 

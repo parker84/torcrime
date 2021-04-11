@@ -51,13 +51,18 @@ class EmailUsers():
 
     def filter_to_users_near_the_event(self, tweet_lat, tweet_lon):
         user_df_event = self.user_df.copy()
-        user_df_event["distance_to_address"] = self._calc_distances_to_each_user(tweet_lat, tweet_lon)
-        user_df_event_filtered = user_df_event[
-            user_df_event["distance_to_address"] <= user_df_event["km_radius"]
-        ]
-        perc_users_for_event = 100 * user_df_event_filtered.shape[0] / user_df_event.shape[0]
-        self.logger.info(f"% of users for this event: {perc_users_for_event}")
-        return user_df_event_filtered
+        try:
+            tweet_lat, tweet_lon = float(tweet_lat), float(tweet_lon)
+            user_df_event["distance_to_address"] = self._calc_distances_to_each_user(tweet_lat, tweet_lon)
+            user_df_event_filtered = user_df_event[
+                user_df_event["distance_to_address"] <= user_df_event["km_radius"]
+            ]
+            perc_users_for_event = 100 * user_df_event_filtered.shape[0] / user_df_event.shape[0]
+            self.logger.info(f"% of users for this event: {perc_users_for_event}")
+            return user_df_event_filtered
+        except ValueError:
+            return user_df_event.iloc[0:0]
+        
     
     def _calc_distances_to_each_user(self, tweet_lat, tweet_lon):
         distances = []
