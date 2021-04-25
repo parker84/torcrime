@@ -13,8 +13,6 @@ def get_user_df_and_send_emails(tweet_df):
     builder.get_and_set_customer_df()
     builder.get_and_set_order_df()
     for ix, row in tweet_df.iterrows():
-        # if row.lat != "null":
-        #     import ipdb; ipdb.set_trace()
         user_df = builder.build_user_df()
         if user_df.shape[0] > 0:
             email_users = EmailUsers(user_df)
@@ -24,7 +22,7 @@ def get_user_df_and_send_emails(tweet_df):
                 row
             )
 
-def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
+def append_to_tables_and_email_users_latest_tweets_every_n_secs(secs=10, log_every=1000):
     logger.info('Starting to listen')
     logger.info(f'Making requests every {secs}s, logging every {log_every}s')
     scrapper = TweetScrapper()
@@ -54,4 +52,4 @@ def append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=1000):
 
 
 if __name__ == "__main__":
-    append_to_streaming_raw_tweet_tables_every_n_secs(secs=10, log_every=10000)
+    append_to_tables_and_email_users_latest_tweets_every_n_secs(secs=10, log_every=10000)
