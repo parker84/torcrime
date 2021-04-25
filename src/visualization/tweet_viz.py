@@ -43,7 +43,7 @@ coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
 
 #-------------------Load data
-crime_tweets = pd.read_sql(f"select * from {config('TABLE_CRIME_TWEETS')}", con=engine)
+crime_tweets = pd.read_sql(f"select * from {config('TABLE_CRIME_TWEETS')}", con=engine, schema=config('DB_SRC_SCHEMA'))
 logger.info(f"Value Counts of Crimes: {crime_tweets.event.value_counts().head(40)}%") 
 
 #----------------Clean data

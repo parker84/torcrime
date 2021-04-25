@@ -74,21 +74,21 @@ class TweetScrapper():
         if tweet_df.shape[0] > 0:
             tweet_df_sel = tweet_df[[
                 "id", "created_at", "text", 
-                "address", "lat", "lon", "event", "is_update", "is_event",
+                "address", "lat", "lon", "crime", "is_update", "is_crime",
                 "user_name", "retweet_count", "favorite_count"
             ]]
             logger.info("tweets that occurred in the last 10 seconds:")
             logger.info(tweet_df_sel)
-            tweet_df_sel.to_sql(name=table_name, con=self.engine, if_exists=if_exists)
+            tweet_df_sel.to_sql(name=table_name, con=self.engine, if_exists=if_exists, schema=config('DB_SRC_SCHEMA'))
 
     def _extract_entities_from_ops_tweet(self, dict_tweet):
         text = dict_tweet["text"]
         lines = text.split("\n")
         if lines[0].endswith(":") or lines[0].lower().endswith("update"):
             dict_tweet["address"] = lines[1].replace("&amp;", "and").replace("+", "and") + ", Toronto"
-            dict_tweet["event"] = lines[0].split(":")[0].lower()
+            dict_tweet["crime"] = lines[0].split(":")[0].lower()
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
-            dict_tweet["is_event"] = True
+            dict_tweet["is_crime"] = True
             try:
                 location = self.geolocator.geocode(dict_tweet["address"])
             except Exception as err:
@@ -105,9 +105,9 @@ class TweetScrapper():
                 dict_tweet["lat"] = "null"
                 dict_tweet["lon"] = "null"
         else:
-            dict_tweet["is_event"] = False
+            dict_tweet["is_crime"] = False
             dict_tweet["address"] = "null"
-            dict_tweet["event"] = "null"
+            dict_tweet["crime"] = "null"
             dict_tweet["is_update"] = "null"
             dict_tweet["lat"] = "null"
             dict_tweet["lon"] = "null"
