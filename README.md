@@ -25,12 +25,10 @@ virtualenv venv
 source ./venv/bin/activate
 # install the requirements
 pip install -r ./requirements.txt
-# run the streamlit apps:
-streamlit run ./st_address_app.py
-streamlit run ./st_map_app.py 
-streamlit run ./st_clustering_app.py
-# run the dash application:
-python ./dash_app.py
+# run the streamlit app:
+streamlit run ./app.py
+# running the crime app
+python3 ./alert_app.py
 ```
 
 ### Running the tests:
@@ -38,7 +36,9 @@ python ./dash_app.py
 # set your python path to the top of the repo
 export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
 # run all tests to ensure its working properly:
-python -m unittest discover ./tests/
+python3 -m unittest discover ./tests/
+# running all pytests (for the tweet system)
+python3 -m pytest ./tests/pytests/ --capture=no # Note: if you want to use a debugger (like ipdb) add --capture=no to the end of this
 ```
 
 ### Running the data cleaning (not required unless you're updating the data)
@@ -47,6 +47,12 @@ python -m unittest discover ./tests/
 2. load the csvs into sql with src/data/load_crime_data.py
 3. clean the data using the scripts in ./src/data/sql
 4. run src/data/make_dataset.py to save the final table to a csv
+
+### Getting db ready
+```sh
+# scrape all the recent tweets into the db
+python3 ./src/data/tweet_scrapper.py 
+```
 
 ### Deployment Documentation
 - Deployment see here: /docs/tutorials/deploying_app_to_beanstalk.md

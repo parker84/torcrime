@@ -1,1 +1,1 @@
-web: sh st_setup.sh && streamlit run app.py
+web: sh st_setup.sh && streamlit run app.py && python3 ./alert_app.py
