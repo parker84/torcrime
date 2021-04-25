@@ -28,7 +28,7 @@ app_type = st.selectbox(
 )
 
 st.sidebar.markdown('### Get Real-Time Email Alerts About Crimes Occuring Near You')
-st.sidebar.markdown("#### [Sign up here](https://torontocrime.myshopify.com/pages/early-access)")
+st.sidebar.markdown("#### [Sign up here](http://torcrime.com/products/crime-alerts)")
 
 if app_type != "Recent Crime Reports Near Address":
     #---------------sidebar filtering

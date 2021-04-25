@@ -25,12 +25,10 @@ virtualenv venv
 source ./venv/bin/activate
 # install the requirements
 pip install -r ./requirements.txt
-# run the streamlit apps:
-streamlit run ./st_address_app.py
-streamlit run ./st_map_app.py 
-streamlit run ./st_clustering_app.py
-# run the dash application:
-python ./dash_app.py
+# run the streamlit app:
+streamlit run ./app.py
+# running the crime app
+python3 ./alert_app.py
 ```
 
 ### Running the tests:
