@@ -50,6 +50,12 @@ python3 -m pytest ./tests/pytests/ --capture=no # Note: if you want to use a deb
 3. clean the data using the scripts in ./src/data/sql
 4. run src/data/make_dataset.py to save the final table to a csv
 
+### Getting db ready
+```sh
+# scrape all the recent tweets into the db
+python3 ./src/data/tweet_scrapper.py 
+```
+
 ### Deployment Documentation
 - Deployment see here: /docs/tutorials/deploying_app_to_beanstalk.md
 
