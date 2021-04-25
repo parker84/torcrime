@@ -43,14 +43,17 @@ coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
 
 #-------------------Load data
-crime_tweets = pd.read_sql(f"select * from {config('TABLE_CRIME_TWEETS')}", con=engine, schema=config('DB_SRC_SCHEMA'))
-logger.info(f"Value Counts of Crimes: {crime_tweets.event.value_counts().head(40)}%") 
+crime_tweets = pd.read_sql(
+    f"select * from {config('DB_SRC_SCHEMA')}.{config('TABLE_CRIME_TWEETS')}", 
+    con=engine
+)
+logger.info(f"Value Counts of Crimes: {crime_tweets.crime.value_counts().head(40)}%") 
 
 #----------------Clean data
 crime_tweets_cleaned = crime_tweets.replace("null", np.nan).dropna(subset=["lat", "lon"], axis=0)
 perc_tweets_removed = round(1 - (crime_tweets_cleaned.shape[0] / crime_tweets.shape[0]), 1)
 logger.info(f"% of Rows Removed bc missing lat/lon: {perc_tweets_removed*100}%")
-crime_tweets_cleaned["crime"] = crime_tweets_cleaned["event"].replace(CRIME_MAPPINGS)
+crime_tweets_cleaned["crime"] = crime_tweets_cleaned["crime"].replace(CRIME_MAPPINGS)
 crime_tweets_cleaned = crime_tweets_cleaned[crime_tweets_cleaned.crime.isin(CRIME_OPTIONS)]
 crime_tweets_cleaned["created_at"] = pd.to_datetime(crime_tweets_cleaned["created_at"])
 crime_tweets_cleaned["created_at_est"] = crime_tweets_cleaned["created_at"].dt.tz_convert("EST")
@@ -122,6 +125,6 @@ class TweetViz():
         logger.info("Filtered to radius around address")
     
     def show_dataframes(self):
-        st.markdown("#### Recent Crime Reports Within Radius ([sign up to see more details and receive alerts](https://torontocrime.myshopify.com/pages/early-access))")
+        st.markdown("#### Recent Crime Reports Within Radius ([sign up to see more details and receive alerts](http://torcrime.com/products/crime-alerts))")
         st.dataframe(self.filtered_crime_df_within_radius)
     
