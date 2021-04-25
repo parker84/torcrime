@@ -35,7 +35,7 @@ class TestNbhdData(unittest.TestCase):
         assert alderwood_sq_kms < 5.5 and total_sq_kms > 4.5, "total sq kms for alderwood not in reasonable range"
 
     def test_population(self):
-        assert self.df.population.sum() > 2e+06 and self.df.population.sum() < 3e+06, "population wrong"
+        assert self.df.population.sum() > 2e+06 and self.df.population.sum() < 3e+07, "population wrong"
 
 
 if __name__ == "__main__":

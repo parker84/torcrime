@@ -5,7 +5,7 @@ select
     "Hood_ID" as nbhd_id
     ,"Neighbourhood" as neighbourhood
     ,"Shape__Area" as sq_metres
-    ,"Population" as population
+    ,"F2020_Population_Projection" as population
 from src.nbhd_data;
 
 drop index if exists nbhd_id_ix;

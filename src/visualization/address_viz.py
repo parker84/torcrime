@@ -159,7 +159,7 @@ class AddressViz():
             layers=[
                 pdk.Layer(
                     'HeatmapLayer',
-                    self.filtered_crime_df_within_radius,
+                    self.filtered_crime_df_within_radius[["lat", "lon"]],
                     get_position=['lon', 'lat'],
                     auto_highlight=True,
                     get_radius=5,

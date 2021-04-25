@@ -17,8 +17,8 @@ select
     ,nbhd.nbhd_id as nbhd_nbhd_id
 from stg.mci_data as mci
 full outer join stg.nbhd_data as nbhd on
-    mci.nbhd_id = nbhd.nbhd_id
-where mci.occurrenceyear > 2013;
+    cast(mci.nbhd_id as text) = cast(nbhd.nbhd_id as text)
+where cast(mci.occurrenceyear as int) > 2013;
     
 
 drop index if exists crime_event_and_type_ix;
