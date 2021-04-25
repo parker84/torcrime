@@ -24,6 +24,7 @@ heroku logs --tail
 ### Resources:
 1. https://medium.com/analytics-vidhya/how-to-deploy-your-streamlit-app-on-heroku-for-free-284c96c2a06d
 2. https://devcenter.heroku.com/articles/getting-started-with-python
+3. How do I run multiple processes on a dyno?: https://help.heroku.com/CTFS2TJK/how-do-i-run-multiple-processes-on-a-dyno
 
 ### multiple apps in 1 repo (WIP):
 - https://stackoverflow.com/questions/41461517/deploy-two-separate-heroku-apps-from-same-git-repo

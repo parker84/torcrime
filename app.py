@@ -7,9 +7,9 @@ import time
 from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
 from src.visualization.comparison_viz import CompareNeighbourhoods
+from src.visualization.tweet_viz import TweetViz
 from geopy.geocoders import Nominatim
 import json
-from src.visualization.tweet_viz import TweetViz
 
 #----------------helpers
 logger = logging.getLogger(__name__)
