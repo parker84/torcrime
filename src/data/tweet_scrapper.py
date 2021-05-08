@@ -125,4 +125,4 @@ def replace_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1))
             
 
 if __name__ == "__main__":
-    replace_raw_tweet_tables(since=datetime.datetime(year=2010, month=1, day=1))
+    replace_raw_tweet_tables(since=datetime.datetime(year=2000, month=1, day=1))
