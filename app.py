@@ -10,6 +10,7 @@ from src.visualization.comparison_viz import CompareNeighbourhoods
 from src.visualization.tweet_viz import TweetViz
 from geopy.geocoders import Nominatim
 import json
+import streamlit_analytics
 
 #----------------helpers
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 start_time = time.process_time()
 geolocator = Nominatim(user_agent="toronto_crime_app")
 
+streamlit_analytics.start_tracking()
 #-----------------setup
 crime_df = pd.read_csv(
     "./data/processed/crime_data.csv").rename(columns={"long": "lon"})
@@ -77,3 +79,4 @@ else:
 
 st.button("Re-run")
 logger.info(f"Seconds to run: {round(time.process_time() - start_time, 2)}")
+streamlit_analytics.stop_tracking()
