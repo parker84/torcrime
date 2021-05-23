@@ -17,6 +17,15 @@ heroku open
 heroku logs --tail
 ```
 
+### config
+```sh
+# see current settings:
+heroku config
+
+# update parameter
+heroku config:set EMAIL_USERNAME=torcrime@gmail.com
+```
+
 ### trouble shooting
 - Why am I seeing "Couldn't find that process type" when trying to scale dynos?
   - https://help.heroku.com/W23OAFGK/why-am-i-seeing-couldn-t-find-that-process-type-when-trying-to-scale-dynos
