@@ -26,7 +26,7 @@ st.title("Toronto Crime Analysis")
 app_type = st.selectbox(
     label="Choose Analysis Type",
     options=["Address Analysis", "Recent Crime Reports Near Address", "Neighbourhood Comparison", "Neighbourhood Exploration"],
-    index=0
+    index=1
 )
 
 st.sidebar.markdown('### Get Real-Time Email Alerts About Crimes Occuring Near You')
