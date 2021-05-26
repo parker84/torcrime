@@ -99,7 +99,7 @@ class TweetViz():
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
-        self.address = st.text_input("Enter the address of interest", "1 Dundas st East, Toronto")
+        self.address = st.text_input("Enter the address and district of interest (format: [street #] [street name], Toronto)", "1 Dundas st East, Toronto")
         self.walking_mins_str = st.selectbox(
             label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
             options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
