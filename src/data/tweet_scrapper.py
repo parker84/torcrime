@@ -55,7 +55,7 @@ class TweetScrapper():
         min_datetime = datetime.datetime.now().astimezone(self.utc) - datetime.timedelta(seconds=secs)
         tweets = []
         min_date = str(min_datetime).split(" ")[0]
-        for tweet in tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date).items():
+        for tweet in tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date, wait_on_rate_limit=True).items():
             dict_tweet = tweet._json
             tweet_dt = (
                 datetime.datetime.strptime(dict_tweet["created_at"], '%a %b %d %H:%M:%S +0000 %Y')
@@ -120,8 +120,8 @@ def replace_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1))
     scrapper = TweetScrapper()
     res_df = scrapper.get_bulk_tweets_from_to_user("TPSOperations", since, ops_tweet=True)
     scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="replace")
-    res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
-    scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
+    # res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
+    # scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
             
 
 if __name__ == "__main__":
