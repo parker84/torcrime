@@ -35,7 +35,7 @@ class TweetScrapper():
         """
         tweets = []
         min_date = str(min_datetime).split(" ")[0]
-        for tweet in tqdm(tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date).items()):
+        for tweet in tqdm(tweepy.Cursor(self.api.user_timeline, id=user_id, since=min_date, wait_on_rate_limit=True).items()):
             dict_tweet = tweet._json
             dict_tweet["user_name"] = dict_tweet["user"]["name"]
             if ops_tweet:

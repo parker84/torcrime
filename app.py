@@ -4,6 +4,7 @@ import coloredlogs
 import logging
 import os
 import time
+
 from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
 from src.visualization.comparison_viz import CompareNeighbourhoods
@@ -17,11 +18,17 @@ logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 start_time = time.process_time()
 geolocator = Nominatim(user_agent="toronto_crime_app")
-
 streamlit_analytics.start_tracking()
+
+@st.cache
+def load_crime_data():
+    crime_df = pd.read_csv("./data/processed/crime_data.csv").rename(columns={"long": "lon"})
+    crime_types = crime_df.crime_type.unique().tolist()
+    crime_locations = crime_df.premisetype.unique().tolist()
+    return crime_df, crime_types, crime_locations
+
 #-----------------setup
-crime_df = pd.read_csv(
-    "./data/processed/crime_data.csv").rename(columns={"long": "lon"})
+crime_df, crime_types, crime_locations = load_crime_data()
 st.title("Toronto Crime Analysis")
 app_type = st.selectbox(
     label="Choose Analysis Type",
@@ -38,14 +45,14 @@ if app_type != "Recent Crime Reports Near Address":
     st.sidebar.markdown('### Choose Your Filters')
     crime_options = st.sidebar.multiselect(
         label="Choose Crime Types",
-        options=crime_df.crime_type.unique().tolist(),
+        options=crime_types,
         default=[
             "Assault", "Robbery"
         ]
     )
     location_options = st.sidebar.multiselect(
         label="Choose Location Types",
-        options=crime_df.premisetype.unique().tolist(),
+        options=crime_locations,
         default=[
             "Outside"
         ]
