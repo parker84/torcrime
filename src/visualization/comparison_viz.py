@@ -94,7 +94,7 @@ class CompareNeighbourhoods():
 
     def _viz_per_10k(self):
         preds_per_10k = self.predicter.predict_cases_per_10k_people_per_nbhd_per_hour()
-        assert preds_per_10k.shape[0] == len(self.counties["features"])
+        assert abs(preds_per_10k.shape[0] - len(self.counties["features"])) < 2
         fig=(
             px.choropleth(preds_per_10k, 
                 geojson=self.counties, 
@@ -125,7 +125,8 @@ class CompareNeighbourhoods():
 
     def _viz_per_km(self):
         preds_per_km = self.predicter.predict_cases_per_sq_km_per_nbhd_per_hour()
-        assert preds_per_km.shape[0] == len(self.counties["features"])
+        assert abs(preds_per_km.shape[0] - len(self.counties["features"])) < 2
+
         fig=(
             px.choropleth(preds_per_km, 
                 geojson=self.counties, 
