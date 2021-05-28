@@ -4,6 +4,7 @@ import coloredlogs
 import logging
 import os
 import time
+from PIL import Image
 
 from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
@@ -29,17 +30,17 @@ def load_crime_data():
 
 #-----------------setup
 crime_df, crime_types, crime_locations = load_crime_data()
-st.title("Toronto Crime Analysis")
+st.title("Toronto Crime Dashboard")
 app_type = st.selectbox(
     label="Choose Analysis Type",
-    options=["Address Analysis", "Recent Crime Reports Near Address", "Neighbourhood Comparison", "Neighbourhood Exploration"],
+    options=["Address Crime Analysis", "Recent Crime Alerts Near Address", "Neighbourhood Crime Comparison", "Toronto Crime Clusters"],
     index=1
 )
+st.sidebar.title('TorCrime')
+image = Image.open('./assets/FlaviConTC.png')
+st.sidebar.image(image, width=100)
 
-st.sidebar.markdown('### Get Real-Time Email Alerts About Crimes Occuring Near You')
-st.sidebar.markdown("#### [Sign up here](http://torcrime.com/products/crime-alerts)")
-
-if app_type != "Recent Crime Reports Near Address":
+if app_type != "Recent Crime Alerts Near Address":
     #---------------sidebar filtering
     logger.info("Sidebar filtering")
     st.sidebar.markdown('### Choose Your Filters')
@@ -62,20 +63,20 @@ if app_type != "Recent Crime Reports Near Address":
     filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
         location_options)]
 
-    if app_type == "Address Analysis":
+    if app_type == "Address Crime Analysis":
         address_viz = AddressViz(filtered_crime_df, geolocator, crime_df.occurrenceyear.min(), crime_df.occurrenceyear.max())
         address_viz.viz_close_neighbourhood_rankings()
         address_viz.viz_eda_plots()
         address_viz.viz_crime_counts_on_map()
         address_viz.show_dataframes()
-    elif app_type == "Neighbourhood Exploration":
+    elif app_type == "Toronto Crime Clusters":
         clust_viz = ClusteringViz(filtered_crime_df, geolocator)
         clust_viz.cluster_crimes_and_remove_outliers()
         clust_viz.set_stats_per_cluster()
         clust_viz.add_addresses_per_cluster()
         clust_viz.viz_clusters()
         clust_viz.show_dataframes()
-    elif app_type == "Neighbourhood Comparison":
+    elif app_type == "Neighbourhood Crime Comparison":
         with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
                 counties = json.load(f)
         comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
@@ -83,6 +84,11 @@ if app_type != "Recent Crime Reports Near Address":
 else:
     tweet_viz = TweetViz()
     tweet_viz.show_dataframes()
+
+
+st.sidebar.markdown('### Get Real-Time Email Alerts About Crimes Occuring Near You')
+st.sidebar.markdown("**[Sign up here](http://torcrime.com/products/crime-alerts)**")
+st.sidebar.markdown('Please let us know how we can make [TorCrime](https://torcrime.com) better for you: [Contact Us](https://torcrime.com/pages/contact-us)')
 
 st.button("Re-run")
 logger.info(f"Seconds to run: {round(time.process_time() - start_time, 2)}")

@@ -95,7 +95,7 @@ class TweetViz():
         self.filter_crime_df_within_radius()
 
     def show_intro_text(self):
-        st.markdown("#### This platform will provide details about recent reports around a specific address of interest")
+        st.markdown("#### This platform will provide details about recent alerts around a specific address of interest")
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
@@ -125,6 +125,6 @@ class TweetViz():
         logger.info("Filtered to radius around address")
     
     def show_dataframes(self):
-        st.markdown("#### Recent Crime Reports Within Radius ([sign up to receive alerts](http://torcrime.com/products/crime-alerts))")
+        st.markdown("#### Recent Crime Alerts Within Radius ([sign up to receive real-time alerts to your email](http://torcrime.com/products/crime-alerts))")
         st.dataframe(self.filtered_crime_df_within_radius)
     
