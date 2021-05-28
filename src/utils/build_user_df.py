@@ -4,11 +4,13 @@ import shopify
 import pandas as pd
 import json
 from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
 class BuildUserDf():
 
     def __init__(self):
-        self.geolocator = Nominatim(user_agent="toronto_crime_app")
+        geolocator = Nominatim(user_agent="toronto_crime_app")
+        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
         shopify.ShopifyResource.set_site(config("SHOP_URL"))
     
     def get_and_set_customer_df(self):
@@ -77,7 +79,7 @@ class BuildUserDf():
             for ix, row in df.iterrows()
         ]
         locs = [
-            self.geolocator.geocode(address)
+            self.geocoder(address)
             for address in df["tor_address"]
         ]
         df["lat"] = [

@@ -45,7 +45,7 @@ def append_to_tables_and_email_users_latest_tweets_every_n_secs(secs=10, log_eve
             res_df = scrapper.get_tweets_from_last_n_secs("TPSOperations", secs, ops_tweet=True)
             if res_df.shape[0] > 0:
                 get_user_df_and_send_emails(res_df)
-            scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="append")
+                scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="append")
 
 
 if __name__ == "__main__":

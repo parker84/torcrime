@@ -2,12 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-import math
 from plotnine import *
 import geopy.distance
+from geopy.extra.rate_limiter import RateLimiter
 import os
 import coloredlogs
 import logging
+import time
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 
@@ -37,9 +38,10 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class AddressViz():
     
-    def __init__(self, filtered_crime_df, geolocator, min_year, max_year):
+    def __init__(self, filtered_crime_df, geolocator, min_year, max_year, initial_random_addresses):
         self.filtered_crime_df = filtered_crime_df
-        self.geolocator = geolocator
+        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        self.initial_random_addresses = initial_random_addresses
         self.min_year, self.max_year = min_year, max_year
         self.show_intro_text()
         self.filter_crime_df_within_radius()
@@ -49,7 +51,13 @@ class AddressViz():
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
-        self.address = st.text_input("Enter the address and district of interest (format: [street #] [street name], Toronto)", "1 Dundas st East, Toronto")
+        self.address = st.text_input(
+            "Enter the address and district of interest (format: [street #] [street name], Toronto)", 
+            value="Enter Address Here (format: [street #] [street name], Toronto)",
+            help="Format: [street #] [street name], Toronto (Or one of the 6 districts: Old Toronto, East York, Etobicoke, North York, Scarborough, York)"
+        )
+        if self.address == "Enter Address Here (format: [street #] [street name], Toronto)":
+            self.address = np.random.choice(self.initial_random_addresses)
         self.walking_mins_str = st.selectbox(
             label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
             options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
@@ -57,7 +65,13 @@ class AddressViz():
         )
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
-        location = self.geolocator.geocode(self.address)
+        try:
+            location = self.geocoder(self.address)
+        except Exception as err:
+            logger.warn(f"{err}")
+            logger.warn(f"sleeping for 5 secs and trying again")
+            time.sleep(5)
+            location = self.geocoder(self.address)
         self.lat, self.lon = location.latitude, location.longitude
         self.filtered_crime_df["distance_to_address"] = calc_distances(self.filtered_crime_df, self.lat, self.lon)
         filtered_crime_df_within_radius = (

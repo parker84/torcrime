@@ -1,12 +1,12 @@
 import tweepy
 from decouple import config
 import pandas as pd
-import psycopg2
 from sqlalchemy import create_engine
 from tqdm import tqdm
 import datetime
 import coloredlogs
 from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 import logging
 import pytz
 import os
@@ -23,7 +23,8 @@ class TweetScrapper():
         self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
-        self.geolocator = Nominatim(user_agent="toronto_crime_app")
+        geolocator = Nominatim(user_agent="toronto_crime_app")
+        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     def get_bulk_tweets_from_to_user(self, user_id, min_datetime, ops_tweet=True):
         """
@@ -90,14 +91,11 @@ class TweetScrapper():
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
             dict_tweet["is_crime"] = True
             try:
-                location = self.geolocator.geocode(dict_tweet["address"])
+                location = self.geocoder(dict_tweet["address"])
             except Exception as err:
                 logger.error(f"Error calculating the distances: {err}, sleeping for 100s and then trying again")
                 time.sleep(100)
-                try:
-                    location = self.geolocator.geocode(dict_tweet["address"])
-                except Exception as err:
-                    import ipdb; ipdb.set_trace()
+                location = self.geocoder(dict_tweet["address"])
             if location is not None:
                 dict_tweet["lat"] = location.latitude
                 dict_tweet["lon"] = location.longitude
