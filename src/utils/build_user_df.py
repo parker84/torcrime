@@ -60,9 +60,7 @@ class BuildUserDf():
         
 
     def _filter_to_alert_subscribers(self):
-        user_df = self.customer_df.dropna(axis=0, subset=["default_address"])[
-            self.customer_df.verified_email
-        ][self.customer_df.orders_count > 0][
+        user_df = self.customer_df.dropna(axis=0, subset=["default_address"])[self.customer_df.orders_count > 0][
             self.customer_df.state == "enabled"
         ].merge(self.alert_order_df, how="inner", left_on="id", right_on="customer_id")
         return user_df
