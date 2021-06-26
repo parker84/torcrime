@@ -60,9 +60,11 @@ class BuildUserDf():
         
 
     def _filter_to_alert_subscribers(self):
-        user_df = self.customer_df.dropna(axis=0, subset=["default_address"])[self.customer_df.orders_count > 0][
-            self.customer_df.state == "enabled"
-        ].merge(self.alert_order_df, how="inner", left_on="id", right_on="customer_id")
+        user_df = self.customer_df.dropna(
+            axis=0, subset=["default_address"]
+        )[self.customer_df.orders_count > 0].merge(
+            self.alert_order_df, how="inner", left_on="id", right_on="customer_id"
+        )
         return user_df
     
     def _add_lat_lon_to_df(self, df1):
@@ -73,7 +75,7 @@ class BuildUserDf():
         """
         df = df1.copy()
         df["tor_address"] = [
-            f"{row.default_address['address1']}, Toronto"
+            f"{row.default_address['address1'].split(',')[0]}, Toronto"
             for ix, row in df.iterrows()
         ]
         locs = [

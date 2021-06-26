@@ -47,7 +47,7 @@ def user_df():
     return user_df
 
 def test_user_filtering(user_df):
-    assert user_df.shape[0] == 1, "you should only have 1 user that made it through the filters"
+    assert user_df.shape[0] == 3, "you should only have 1 user that made it through the filters"
 
 def test_address_extraction(user_df):
     assert user_df.iloc[0]["tor_address"] == '12 Charlotte St, Toronto'
