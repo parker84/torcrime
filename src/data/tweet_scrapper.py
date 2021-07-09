@@ -12,9 +12,15 @@ import logging
 import pytz
 import os
 import time
-logger = logging.getLogger(__name__)
-coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 geolocator = Nominatim(user_agent="toronto_crime_app")
+
+#--------------logging setup
+logger = logging.getLogger(__name__)
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"))
+fh = logging.FileHandler('logs/alert_app.log')
+logger.addHandler(fh)
+fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 
 class TweetScrapper():
 
