@@ -5,12 +5,19 @@ import pandas as pd
 import json
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
+from src.utils.geocoder import GeoCoder
+import coloredlogs
+import logging
+import os
+logger = logging.getLogger(__name__)
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
+
 
 class BuildUserDf():
 
     def __init__(self):
         geolocator = Nominatim(user_agent="toronto_crime_app")
-        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        self.geocoder = GeoCoder(geolocator)
         shopify.ShopifyResource.set_site(config("SHOP_URL"))
     
     def get_and_set_customer_df(self):
@@ -79,14 +86,20 @@ class BuildUserDf():
             for ix, row in df.iterrows()
         ]
         locs = [
-            self.geocoder(address)
+            self.geocoder.geocode(address)
             for address in df["tor_address"]
         ]
+        if sum([loc == 'Could Not Geocode Address' for loc in locs]) > 0:
+            logger.error('You have addresses from users you could not geocode')
         df["lat"] = [
-            loc.latitude for loc in locs
+            loc.latitude if loc != 'Could Not Geocode Address' 
+            else loc
+            for loc in locs
         ]
         df["lon"] = [
-            loc.longitude for loc in locs
+            loc.longitude if loc != 'Could Not Geocode Address' 
+            else loc
+            for loc in locs
         ]
         return df
     

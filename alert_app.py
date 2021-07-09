@@ -38,14 +38,21 @@ def append_to_tables_and_email_users_latest_tweets_every_n_secs(secs=10, log_eve
             i += 1
             time.sleep(secs)
         except Exception as err:
-            logger.error(f'Failed with error: {err}')
+            logger.warn(f'Failed with error: {err}')
             logger.info(f'Making request number: {i+1}, sleeping for 1m')
             time.sleep(60)
 
-            res_df = scrapper.get_tweets_from_last_n_secs("TPSOperations", secs, ops_tweet=True)
-            if res_df.shape[0] > 0:
-                get_user_df_and_send_emails(res_df)
-                scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="append")
+            try:
+                res_df = scrapper.get_tweets_from_last_n_secs(
+                    "TPSOperations", 
+                    secs + 80, # = 60 + 10 + 10 => pull from the before the 2 sleeps and 10s until now
+                    ops_tweet=True
+                )
+                if res_df.shape[0] > 0:
+                    get_user_df_and_send_emails(res_df)
+                    scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="append")
+            except Exception as err:
+                logger.error(f'Failed with error: {err}')
 
 
 if __name__ == "__main__":

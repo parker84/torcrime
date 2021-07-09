@@ -2,8 +2,7 @@ import os
 import pandas as pd
 import pandas as pd
 import numpy as np
-from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
+from src.utils.geocoder import GeoCoder
 import logging
 import coloredlogs
 from decouple import config
@@ -40,7 +39,6 @@ CRIME_REGEX = {
     "demonstration": "Demonstration",
     "assault": "Assault"
 }
-geolocator = Nominatim(user_agent="toronto_crime_app")
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
@@ -92,9 +90,9 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class TweetViz():
     
-    def __init__(self, alert_crime_options, initial_random_addresses, geolocator=geolocator, filtered_crime_df=crime_tweets_cleaned):
+    def __init__(self, alert_crime_options, initial_random_addresses, geolocator, filtered_crime_df=crime_tweets_cleaned):
         self.filtered_crime_df = filtered_crime_df[filtered_crime_df.crime.isin(alert_crime_options)]
-        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        self.geocoder = GeoCoder(geolocator)
         self.initial_random_addresses = initial_random_addresses
         self.show_intro_text()
         self.filter_crime_df_within_radius()
@@ -119,12 +117,12 @@ class TweetViz():
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
         try:
-            location = self.geocoder(self.address)
+            location = self.geocoder.geocode(self.address)
         except Exception as err:
             logger.warn(f"{err}")
             logger.warn(f"sleeping for 5 secs and trying again")
             time.sleep(5)
-            location = self.geocoder(self.address)
+            location = self.geocoder.geocode(self.address)
         self.lat, self.lon = location.latitude, location.longitude
         self.filtered_crime_df["distance_to_address"] = calc_distances(self.filtered_crime_df, self.lat, self.lon)
         filtered_crime_df_within_radius = (

@@ -1,3 +1,5 @@
+import ipdb # no idea why but I can't import from src without this here?
+from src.utils.geocoder import GeoCoder
 import tweepy
 from decouple import config
 import pandas as pd
@@ -6,13 +8,13 @@ from tqdm import tqdm
 import datetime
 import coloredlogs
 from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
 import logging
 import pytz
 import os
 import time
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
+geolocator = Nominatim(user_agent="toronto_crime_app")
 
 class TweetScrapper():
 
@@ -23,8 +25,7 @@ class TweetScrapper():
         self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
-        geolocator = Nominatim(user_agent="toronto_crime_app")
-        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        self.geocoder = GeoCoder(geolocator)
 
     def get_bulk_tweets_from_to_user(self, user_id, min_datetime, ops_tweet=True):
         """
@@ -91,12 +92,12 @@ class TweetScrapper():
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
             dict_tweet["is_crime"] = True
             try:
-                location = self.geocoder(dict_tweet["address"])
+                location = self.geocoder.geocode(dict_tweet["address"])
             except Exception as err:
                 logger.error(f"Error calculating the distances: {err}, sleeping for 100s and then trying again")
                 time.sleep(100)
-                location = self.geocoder(dict_tweet["address"])
-            if location is not None:
+                location = self.geocoder.geocode(dict_tweet["address"])
+            if location != "Could Not Geocode Address" and location is not None:
                 dict_tweet["lat"] = location.latitude
                 dict_tweet["lon"] = location.longitude
             else: 
@@ -114,13 +115,13 @@ class TweetScrapper():
 
 #--------------Execution functions
 
-def replace_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1)):
+def update_raw_tweet_tables(since=datetime.datetime(year=2014, month=1, day=1), if_exists="replace"):
     scrapper = TweetScrapper()
     res_df = scrapper.get_bulk_tweets_from_to_user("TPSOperations", since, ops_tweet=True)
-    scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists="replace")
+    scrapper.save_tweetdf_to_db(res_df, "raw_tps_ops_tweets", if_exists=if_exists)
     # res_df = scrapper.get_bulk_tweets_from_to_user("TorontoPolice", since)
-    # scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists="replace")
+    # scrapper.save_tweetdf_to_db(res_df, "raw_to_police_tweets", if_exists=if_exists)
             
 
 if __name__ == "__main__":
-    replace_raw_tweet_tables(since=datetime.datetime(year=2000, month=1, day=1))
+    update_raw_tweet_tables(since=datetime.datetime(year=2000, month=1, day=1))
