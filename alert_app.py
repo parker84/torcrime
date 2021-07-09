@@ -4,10 +4,17 @@ from src.utils.email_users import EmailUsers
 import coloredlogs
 import logging
 import os
-logger = logging.getLogger(__name__)
 import time
-coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 
+#--------------logging setup
+logger = logging.getLogger(__name__)
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"))
+fh = logging.FileHandler('logs/alert_app.log')
+logger.addHandler(fh)
+fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+
+#-------------helpers
 def get_user_df_and_send_emails(tweet_df):
     builder = BuildUserDf()
     builder.get_and_set_customer_df()
@@ -22,6 +29,9 @@ def get_user_df_and_send_emails(tweet_df):
                 row
             )
 
+
+
+#----------main function
 def append_to_tables_and_email_users_latest_tweets_every_n_secs(secs=10, log_every=1000):
     logger.info('Starting to listen')
     logger.info(f'Making requests every {secs}s, logging every {log_every}s')

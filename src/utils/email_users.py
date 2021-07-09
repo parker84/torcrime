@@ -6,6 +6,14 @@ from src.utils.emailer import Emailer
 import os
 import pandas as pd
 
+#--------------logging setup
+logger = logging.getLogger(__name__)
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"))
+fh = logging.FileHandler('logs/alert_app.log')
+logger.addHandler(fh)
+fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+
 class EmailUsers():
 
     def __init__(self, user_df):
@@ -15,9 +23,7 @@ class EmailUsers():
             user_df (pd.DataFrame): user dimension dataframe, including the columns: ["lat", "lon", "km_radius", "email"]
         """
         self.user_df = user_df
-        self.logger = logging.getLogger(__name__)
         self.emailer = Emailer()
-        coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=self.logger)
     
     def email_the_right_users(self, sel_user_df, tweet):
         """[summary]
@@ -26,7 +32,7 @@ class EmailUsers():
             sel_user_df (pandas dataframe): isolated to users within radius, and having the columns: ["first_name", "email"]
             tweet (row of a pandas dataframe): with the following columns: ["text", "crime", "address", "created_at"]
         """
-        self.logger.info("Sending emails")
+        logger.info("Sending emails")
         subject = f"TorCrime | {tweet.crime} @ {tweet.address}"
         tweet["created_at_est"] = pd.to_datetime(tweet["created_at"]).tz_convert("EST")
         for ix, row in tqdm(sel_user_df.iterrows()):
@@ -58,7 +64,7 @@ class EmailUsers():
                 user_df_event["distance_to_address"] <= user_df_event["km_radius"]
             ]
             perc_users_for_event = 100 * user_df_event_filtered.shape[0] / user_df_event.shape[0]
-            self.logger.info(f"% of users for this event: {perc_users_for_event}")
+            logger.info(f"% of users for this event: {perc_users_for_event}")
             return user_df_event_filtered
         except ValueError:
             return user_df_event.iloc[0:0]
