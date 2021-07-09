@@ -104,7 +104,7 @@ else:
         options=ALERTING_CRIME_OPTIONS,
         default=ALERTING_CRIME_OPTIONS
     )
-    tweet_viz = TweetViz(alert_crime_options, INITIAL_RANDOM_ADDRESSES)
+    tweet_viz = TweetViz(alert_crime_options, INITIAL_RANDOM_ADDRESSES, geolocator)
     tweet_viz.viz()
 
 

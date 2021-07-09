@@ -1,10 +1,10 @@
+from src.utils.geocoder import GeoCoder
 import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
 from plotnine import *
 import geopy.distance
-from geopy.extra.rate_limiter import RateLimiter
 import os
 import coloredlogs
 import logging
@@ -40,7 +40,7 @@ class AddressViz():
     
     def __init__(self, filtered_crime_df, geolocator, min_year, max_year, initial_random_addresses):
         self.filtered_crime_df = filtered_crime_df
-        self.geocoder = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        self.geocoder = GeoCoder(geolocator)
         self.initial_random_addresses = initial_random_addresses
         self.min_year, self.max_year = min_year, max_year
         self.show_intro_text()
@@ -66,12 +66,12 @@ class AddressViz():
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
         try:
-            location = self.geocoder(self.address)
+            location = self.geocoder.geocode(self.address)
         except Exception as err:
             logger.warn(f"{err}")
             logger.warn(f"sleeping for 5 secs and trying again")
             time.sleep(5)
-            location = self.geocoder(self.address)
+            location = self.geocoder.geocode(self.address)
         self.lat, self.lon = location.latitude, location.longitude
         self.filtered_crime_df["distance_to_address"] = calc_distances(self.filtered_crime_df, self.lat, self.lon)
         filtered_crime_df_within_radius = (

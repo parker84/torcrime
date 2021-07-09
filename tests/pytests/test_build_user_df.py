@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 @pytest.fixture
-def user_df():
+def mock_user_df():
     """Returns a user_df w 1 correct user and the rest that shouldn't be recieving emails
 
     Returns:
@@ -46,20 +46,34 @@ def user_df():
     user_df = builder.build_user_df()
     return user_df
 
-def test_user_filtering(user_df):
-    assert user_df.shape[0] == 3, "you should only have 1 user that made it through the filters"
+@pytest.fixture
+def real_user_df() -> pd.DataFrame:
+    """Returns our actual user_df
+    """
+    builder = BuildUserDf()
+    builder.get_and_set_customer_df()
+    builder.get_and_set_order_df()
+    user_df = builder.build_user_df()
+    return user_df
 
-def test_address_extraction(user_df):
-    assert user_df.iloc[0]["tor_address"] == '12 Charlotte St, Toronto'
+
+def test_user_filtering(mock_user_df):
+    assert mock_user_df.shape[0] == 3, "you should only have 1 user that made it through the filters"
+
+def test_address_extraction(mock_user_df):
+    assert mock_user_df.iloc[0]["tor_address"] == '12 Charlotte St, Toronto'
 
 def test_getting_customer_info():
     builder = BuildUserDf()
     builder.get_and_set_customer_df()
     builder.get_and_set_order_df()
-    user_df = builder.build_user_df()
+    mock_user_df = builder.build_user_df()
     assert builder.customer_df.shape[0] > 0, "not extracting any customers from the shopify api"
     if builder.customer_df.total_spent.sum() == 0:
-        assert user_df.shape[0] == 0, "you have rows in your user df even though no one has spent anything"
+        assert mock_user_df.shape[0] == 0, "you have rows in your user df even though no one has spent anything"
 
-def test_km_radius(user_df):
-    assert user_df.iloc[0].km_radius == 2.5, "km_radius is not correct"
+def test_km_radius(mock_user_df):
+    assert mock_user_df.iloc[0].km_radius == 2.5, "km_radius is not correct"
+
+def test_all_real_users_have_lat_lon(real_user_df):
+    assert sum(real_user_df.lat == 'Could Not Geocode Address') == 0, 'You have addresses from users you could not geocode'
