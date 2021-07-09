@@ -47,11 +47,8 @@ def mock_user_df():
     return user_df
 
 @pytest.fixture
-def real_user_df():
-    """Returns a user_df w 1 correct user and the rest that shouldn't be recieving emails
-
-    Returns:
-        [type]: [description]
+def real_user_df() -> pd.DataFrame:
+    """Returns our actual user_df
     """
     builder = BuildUserDf()
     builder.get_and_set_customer_df()
