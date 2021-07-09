@@ -9,14 +9,16 @@ STRINGS_TO_REPLACE = [
     ' rd',
     ' cres',
     ' blvd',
-    ' dr'
+    ' dr',
+    ' crt',
     # long
     ' street',
     ' avenue',
     ' road',
     ' boulevard',
     ' crescent',
-    ' drive'
+    ' drive',
+    ' court',
     # direction
     ' n',
     ' w',
