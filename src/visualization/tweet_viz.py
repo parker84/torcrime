@@ -90,9 +90,9 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class TweetViz():
     
-    def __init__(self, alert_crime_options, initial_random_addresses, geolocator, filtered_crime_df=crime_tweets_cleaned):
+    def __init__(self, alert_crime_options, initial_random_addresses, filtered_crime_df=crime_tweets_cleaned):
         self.filtered_crime_df = filtered_crime_df[filtered_crime_df.crime.isin(alert_crime_options)]
-        self.geocoder = GeoCoder(geolocator)
+        self.geocoder = GeoCoder()
         self.initial_random_addresses = initial_random_addresses
         self.show_intro_text()
         self.filter_crime_df_within_radius()

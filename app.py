@@ -10,7 +10,6 @@ from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
 from src.visualization.comparison_viz import CompareNeighbourhoods
 from src.visualization.tweet_viz import TweetViz, ALERTING_CRIME_OPTIONS
-from geopy.geocoders import Nominatim
 import json
 import streamlit_analytics
 
@@ -18,7 +17,6 @@ import streamlit_analytics
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 start_time = time.process_time()
-geolocator = Nominatim(user_agent="toronto_crime_app")
 streamlit_analytics.start_tracking()
 INITIAL_RANDOM_ADDRESSES = [
     "1 Dundas st East, Toronto", 
@@ -77,7 +75,7 @@ if app_type != "Recent Crime Alerts Near Address (2021)":
 
     if app_type == "Address Crime Analysis (2014-2020)":
         address_viz = AddressViz(
-            filtered_crime_df, geolocator, crime_df.occurrenceyear.min(), 
+            filtered_crime_df, crime_df.occurrenceyear.min(), 
             crime_df.occurrenceyear.max(), INITIAL_RANDOM_ADDRESSES
         )
         address_viz.viz_close_neighbourhood_rankings()
@@ -85,7 +83,7 @@ if app_type != "Recent Crime Alerts Near Address (2021)":
         address_viz.viz_crime_counts_on_map()
         address_viz.show_dataframes()
     elif app_type == "Toronto Crime Clusters (2014-2020)":
-        clust_viz = ClusteringViz(filtered_crime_df, geolocator)
+        clust_viz = ClusteringViz(filtered_crime_df)
         clust_viz.cluster_crimes_and_remove_outliers()
         clust_viz.set_stats_per_cluster()
         clust_viz.add_addresses_per_cluster()
@@ -104,7 +102,7 @@ else:
         options=ALERTING_CRIME_OPTIONS,
         default=ALERTING_CRIME_OPTIONS
     )
-    tweet_viz = TweetViz(alert_crime_options, INITIAL_RANDOM_ADDRESSES, geolocator)
+    tweet_viz = TweetViz(alert_crime_options, INITIAL_RANDOM_ADDRESSES)
     tweet_viz.viz()
 
 

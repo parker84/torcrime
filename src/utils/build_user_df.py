@@ -22,8 +22,7 @@ fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(me
 class BuildUserDf():
 
     def __init__(self):
-        geolocator = Nominatim(user_agent="toronto_crime_app")
-        self.geocoder = GeoCoder(geolocator)
+        self.geocoder = GeoCoder()
         shopify.ShopifyResource.set_site(config("SHOP_URL"))
     
     def get_and_set_customer_df(self):

@@ -10,6 +10,7 @@ import os
 import hdbscan
 import coloredlogs
 import logging
+from src.utils.geocoder import GeoCoder
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 
@@ -17,9 +18,9 @@ coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 
 class ClusteringViz():
 
-    def __init__(self, filtered_crime_df, geolocator):
+    def __init__(self, filtered_crime_df):
         self.filtered_crime_df = filtered_crime_df
-        self.geolocator = geolocator
+        self.geolocator = GeoCoder().nomatim_geolocator
         self.show_intro_text()
         self.filter_to_neighbourhoods()
 

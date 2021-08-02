@@ -38,9 +38,9 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class AddressViz():
     
-    def __init__(self, filtered_crime_df, geolocator, min_year, max_year, initial_random_addresses):
+    def __init__(self, filtered_crime_df, min_year, max_year, initial_random_addresses):
         self.filtered_crime_df = filtered_crime_df
-        self.geocoder = GeoCoder(geolocator)
+        self.geocoder = GeoCoder()
         self.initial_random_addresses = initial_random_addresses
         self.min_year, self.max_year = min_year, max_year
         self.show_intro_text()

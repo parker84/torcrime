@@ -3,15 +3,13 @@ from src.utils.geocoder import GeoCoder
 import logging
 import coloredlogs
 import os
-from geopy.geocoders import Nominatim
-geolocator = Nominatim(user_agent="toronto_crime_app")
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
 
 @pytest.fixture
 def geocoder():
-    return GeoCoder(geolocator)
+    return GeoCoder()
 
 @pytest.fixture
 def intersections():
@@ -25,9 +23,10 @@ def intersections():
         'Birchmount Rd and Bertrand Ave, Toronto',
         'Spadina Rd and Bloor Ave W, Toronto',
         'Bathurst St and Bainbridge Ave, Toronto'
-        #---------don't work: could get them to work w google maps
-        # 'Lloyd Manor Rd and Eglington Ave W, Toronto',
-        # 'Lake Shore Blvd W and Forty Second St, Toronto'
+        #---------work only w google maps
+        'Lloyd Manor Rd and Eglington Ave W, Toronto',
+        'Lake Shore Blvd W and Forty Second St, Toronto',
+        'Lake Shore Blvd W + Forty Second St, Toronto'
     ]
 
 @pytest.fixture
@@ -41,9 +40,7 @@ def non_intersections():
 @pytest.fixture
 def non_addresses():
     return [
-        'XYZ Eglinton 123, Toronto',
         'Not an address, Toronto',
-        'XYZ Bloor Jane Spadina, Toronto',
     ]
 
 
