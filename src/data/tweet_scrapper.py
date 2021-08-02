@@ -7,12 +7,10 @@ from sqlalchemy import create_engine
 from tqdm import tqdm
 import datetime
 import coloredlogs
-from geopy.geocoders import Nominatim
 import logging
 import pytz
 import os
 import time
-geolocator = Nominatim(user_agent="toronto_crime_app")
 
 #--------------logging setup
 logger = logging.getLogger(__name__)
@@ -31,7 +29,7 @@ class TweetScrapper():
         self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
-        self.geocoder = GeoCoder(geolocator)
+        self.geocoder = GeoCoder()
 
     def get_bulk_tweets_from_to_user(self, user_id, min_datetime, ops_tweet=True):
         """
@@ -97,12 +95,15 @@ class TweetScrapper():
             dict_tweet["crime"] = lines[0].split(":")[0].lower()
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
             dict_tweet["is_crime"] = True
-            try:
-                location = self.geocoder.geocode(dict_tweet["address"])
-            except Exception as err:
-                logger.error(f"Error calculating the distances: {err}, sleeping for 100s and then trying again")
-                time.sleep(100)
-                location = self.geocoder.geocode(dict_tweet["address"])
+            if 'missing' not in dict_tweet["crime"].lower(): # missing has a weird format, and always results in parsing errors
+                try:
+                    location = self.geocoder.geocode(dict_tweet["address"])
+                except Exception as err:
+                    logger.error(f"Error calculating the distances: {err}, sleeping for 100s and then trying again")
+                    time.sleep(100)
+                    location = self.geocoder.geocode(dict_tweet["address"])
+            else:
+               location = "Could Not Geocode Address" 
             if location != "Could Not Geocode Address" and location is not None:
                 dict_tweet["lat"] = location.latitude
                 dict_tweet["lon"] = location.longitude
