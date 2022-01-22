@@ -30,6 +30,9 @@ INITIAL_RANDOM_ADDRESSES = [
     "237 Queen Street East, Toronto",
     "467 Yonge Street, Toronto"
 ]
+CITY_REGIONS = [
+    'Toronto', 'East York', 'Old Toronto', 'Etobicoke', 'North York', 'Scarborough', 'York'
+]
 
 @st.cache
 def load_crime_data():
@@ -41,16 +44,25 @@ def load_crime_data():
 #-----------------setup
 crime_df, crime_types, crime_locations = load_crime_data()
 st.title("Toronto Crime Dashboard")
+st.markdown("This is dashboard that enables the user to identify and understand crimes occuring near an address.")
+st.markdown("**To Begin:** Enter an address in the sidebar of this dashboard (press the arrow in the top left on mobile).")
 st.sidebar.title('TorCrime')
 image = Image.open('./assets/FlaviConTC.png')
 st.sidebar.image(image, width=100)
 
 #---------------sidebar
-address = st.sidebar.text_input(
-    "Enter the address and district of interest (format: [street #] [street name], Toronto)", 
-    value="Enter Address Here (format: [street #] [street name], Toronto)",
-    help="Format: <street #> <street name>, Toronto (Or one of the 6 districts: Old Toronto, East York, Etobicoke, North York, Scarborough, York)"
+street_name_and_number = st.sidebar.text_input(
+    "Enter the address of interest", 
+    value='Enter Address Here (ex: "1 Dundas St")',
+    help="Format: <street #> <street name>"
 )
+city = st.sidebar.selectbox(
+    label="Select the city/region of address",
+    options=CITY_REGIONS,
+    index=0,
+    help='Selecting the specific region or just selecting Toronto should work.'
+)
+address = f'{street_name_and_number}, {city}'
 walking_mins_str = st.sidebar.selectbox(
     label="Select Walking Distance Radius",
     options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
@@ -60,8 +72,9 @@ walking_mins_str = st.sidebar.selectbox(
 
 #------------dash
 st.markdown('### Recent Crimes')
+st.markdown('View crimes that have occurred within the last year, and see details around each crime.')
 alert_crime_options = st.multiselect(
-    label="Choose Crime Types",
+    label="Choose Crime(s)",
     options=ALERTING_CRIME_OPTIONS,
     default=ALERTING_CRIME_DEFAULTS
 )
@@ -70,14 +83,14 @@ tweet_viz.viz()
 
 st.markdown('### Historical Crimes')
 crime_options = st.multiselect(
-    label="Choose Crime Types",
+    label="Choose Crime(s)",
     options=crime_types,
     default=[
         "Assault", "Robbery"
     ]
 )
 location_options = st.multiselect(
-    label="Choose Location Types",
+    label="Choose Location(s)",
     options=crime_locations,
     default=[
         "Outside"

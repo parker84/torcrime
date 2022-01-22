@@ -53,7 +53,7 @@ class AddressViz():
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
-        if self.address == "Enter Address Here (format: [street #] [street name], Toronto)":
+        if self.address == 'Enter Address Here (ex: "1 Dundas St"), Toronto':
             self.address = np.random.choice(self.initial_random_addresses)
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
