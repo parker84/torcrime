@@ -9,7 +9,7 @@ from PIL import Image
 from src.visualization.address_viz import AddressViz
 from src.visualization.clustering_viz import ClusteringViz
 from src.visualization.comparison_viz import CompareNeighbourhoods
-from src.visualization.tweet_viz import TweetViz, ALERTING_CRIME_OPTIONS
+from src.visualization.tweet_viz import TweetViz, ALERTING_CRIME_OPTIONS, ALERTING_CRIME_DEFAULTS
 import json
 import streamlit_analytics
 
@@ -41,69 +41,74 @@ def load_crime_data():
 #-----------------setup
 crime_df, crime_types, crime_locations = load_crime_data()
 st.title("Toronto Crime Dashboard")
-app_type = st.selectbox(
-    label="Choose Analysis Type",
-    options=["Address Crime Analysis (2014-2020)", "Recent Crime Alerts Near Address (2021)", "Neighbourhood Crime Comparison (2014-2020)", "Toronto Crime Clusters (2014-2020)"],
-    index=1
-)
 st.sidebar.title('TorCrime')
 image = Image.open('./assets/FlaviConTC.png')
 st.sidebar.image(image, width=100)
 
-if app_type != "Recent Crime Alerts Near Address (2021)":
-    #---------------sidebar filtering
-    logger.info("Sidebar filtering")
-    st.sidebar.markdown('### Choose Your Filters')
-    crime_options = st.sidebar.multiselect(
-        label="Choose Crime Types",
-        options=crime_types,
-        default=[
-            "Assault", "Robbery"
-        ]
-    )
-    location_options = st.sidebar.multiselect(
-        label="Choose Location Types",
-        options=crime_locations,
-        default=[
-            "Outside"
-        ]
-    )
-    filtered_crime_df = crime_df[crime_df.crime_type.isin(
-        crime_options)]
-    filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
-        location_options)]
+#---------------sidebar
+address = st.sidebar.text_input(
+    "Enter the address and district of interest (format: [street #] [street name], Toronto)", 
+    value="Enter Address Here (format: [street #] [street name], Toronto)",
+    help="Format: <street #> <street name>, Toronto (Or one of the 6 districts: Old Toronto, East York, Etobicoke, North York, Scarborough, York)"
+)
+walking_mins_str = st.sidebar.selectbox(
+    label="Select Walking Distance Radius",
+    options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
+    index=1,
+    help="Based on the average walking speed of 5km/h"
+)
 
-    if app_type == "Address Crime Analysis (2014-2020)":
-        address_viz = AddressViz(
-            filtered_crime_df, crime_df.occurrenceyear.min(), 
-            crime_df.occurrenceyear.max(), INITIAL_RANDOM_ADDRESSES
-        )
-        address_viz.viz_close_neighbourhood_rankings()
-        address_viz.viz_eda_plots()
-        address_viz.viz_crime_counts_on_map()
-        address_viz.show_dataframes()
-    elif app_type == "Toronto Crime Clusters (2014-2020)":
-        clust_viz = ClusteringViz(filtered_crime_df)
-        clust_viz.cluster_crimes_and_remove_outliers()
-        clust_viz.set_stats_per_cluster()
-        clust_viz.add_addresses_per_cluster()
-        clust_viz.viz_clusters()
-        clust_viz.show_dataframes()
-    elif app_type == "Neighbourhood Crime Comparison (2014-2020)":
-        with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
-                counties = json.load(f)
-        comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
-        comp_viz.viz()
-else:
-    #--------------Streamlit
-    st.sidebar.markdown('### Choose Your Filters')
-    alert_crime_options = st.sidebar.multiselect(
-        label="Choose Crime Types",
-        options=ALERTING_CRIME_OPTIONS,
-        default=ALERTING_CRIME_OPTIONS
+#------------dash
+st.markdown('### Recent Crimes')
+alert_crime_options = st.multiselect(
+    label="Choose Crime Types",
+    options=ALERTING_CRIME_OPTIONS,
+    default=ALERTING_CRIME_DEFAULTS
+)
+tweet_viz = TweetViz(address, walking_mins_str, alert_crime_options, INITIAL_RANDOM_ADDRESSES)
+tweet_viz.viz()
+
+st.markdown('### Historical Crimes')
+crime_options = st.multiselect(
+    label="Choose Crime Types",
+    options=crime_types,
+    default=[
+        "Assault", "Robbery"
+    ]
+)
+location_options = st.multiselect(
+    label="Choose Location Types",
+    options=crime_locations,
+    default=[
+        "Outside"
+    ]
+)
+filtered_crime_df = crime_df[crime_df.crime_type.isin(
+    crime_options)]
+filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
+    location_options)]
+
+with st.expander('Address Crime Analysis', expanded=False):
+    address_viz = AddressViz(
+        address, walking_mins_str, filtered_crime_df, crime_df.occurrenceyear.min(), 
+        crime_df.occurrenceyear.max(), INITIAL_RANDOM_ADDRESSES
     )
-    tweet_viz = TweetViz(alert_crime_options, INITIAL_RANDOM_ADDRESSES)
-    tweet_viz.viz()
+    address_viz.viz_close_neighbourhood_rankings()
+    address_viz.viz_eda_plots()
+    address_viz.viz_crime_counts_on_map()
+    address_viz.show_dataframes()
+with st.expander('Neighbourhood Crime Comparison', expanded=False):
+    with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+            counties = json.load(f)
+    comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
+    comp_viz.viz()
+with st.expander('Toronto Crime Clusters', expanded=False):
+    clust_viz = ClusteringViz(filtered_crime_df)
+    clust_viz.cluster_crimes_and_remove_outliers()
+    clust_viz.set_stats_per_cluster()
+    clust_viz.add_addresses_per_cluster()
+    clust_viz.viz_clusters()
+    clust_viz.show_dataframes()
 
 
 st.sidebar.markdown('### Get Real-Time Email Alerts About Crimes Occuring Near You')

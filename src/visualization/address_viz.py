@@ -38,7 +38,9 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class AddressViz():
     
-    def __init__(self, filtered_crime_df, min_year, max_year, initial_random_addresses):
+    def __init__(self, address, walking_mins_str, filtered_crime_df, min_year, max_year, initial_random_addresses):
+        self.address = address
+        self.walking_mins_str = walking_mins_str
         self.filtered_crime_df = filtered_crime_df
         self.geocoder = GeoCoder()
         self.initial_random_addresses = initial_random_addresses
@@ -51,18 +53,8 @@ class AddressViz():
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
-        self.address = st.text_input(
-            "Enter the address and district of interest (format: [street #] [street name], Toronto)", 
-            value="Enter Address Here (format: [street #] [street name], Toronto)",
-            help="Format: [street #] [street name], Toronto (Or one of the 6 districts: Old Toronto, East York, Etobicoke, North York, Scarborough, York)"
-        )
         if self.address == "Enter Address Here (format: [street #] [street name], Toronto)":
             self.address = np.random.choice(self.initial_random_addresses)
-        self.walking_mins_str = st.selectbox(
-            label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
-            options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
-            index=1
-        )
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
         try:
