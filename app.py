@@ -83,7 +83,7 @@ st.sidebar.markdown("**[Sign Up Now](http://torcrime.com/products/crime-alerts)*
 st.sidebar.markdown('Please let us know how we can make [TorCrime](https://torcrime.com) better for you: [Contact Us](https://torcrime.com/pages/contact-us)')
 
 #------------dash
-st.markdown('### Recent Crimes')
+st.markdown('## Recent Crimes')
 st.markdown('View crimes that have occurred within the last year, and see details around each crime.')
 alert_crime_options = st.multiselect(
     label="Choose Crime(s)",
@@ -93,7 +93,7 @@ alert_crime_options = st.multiselect(
 tweet_viz = TweetViz(address, walking_mins_str, alert_crime_options, INITIAL_RANDOM_ADDRESSES)
 tweet_viz.viz()
 
-st.markdown('### Historical Crimes')
+st.markdown('## Historical Crimes')
 st.markdown(
     f'View crimes that have occurred between {int(crime_df.occurrenceyear.min())}-{int(crime_df.occurrenceyear.max())}, and view analytical reports for this address.'
 )
@@ -118,8 +118,8 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 
 with st.expander('Address Crime Report', expanded=True):
     if st.button('Create Address Crime Report'):
-        st.markdown("#### Address Crime Report")
-        st.markdown("This report will enable the user to understand crime around the chosen address.")
+        st.markdown("### Address Crime Report")
+        st.markdown(f"This report will enable the user to understand crime within `{walking_mins_str}` radius around the chosen address.")
         address_viz = AddressViz(
             address, walking_mins_str, filtered_crime_df, crime_df.occurrenceyear.min(), 
             crime_df.occurrenceyear.max(), INITIAL_RANDOM_ADDRESSES
