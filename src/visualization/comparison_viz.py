@@ -10,14 +10,10 @@ class CompareNeighbourhoods():
 
     def __init__(self, filtered_crime_df, counties):
         self.filtered_crime_df = filtered_crime_df
-        self.show_intro_text()
         self.counties = counties
         model = AvgModel()
         self.predicter = Predict(filtered_crime_df, model)
         self.filter_df_by_time()
-
-    def show_intro_text(self):
-        st.markdown("#### This dashboard will allow you to compare crime rates between different neighbourhoods")
 
     def filter_df_by_time(self):
         year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))

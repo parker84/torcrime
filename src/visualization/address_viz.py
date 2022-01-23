@@ -45,11 +45,7 @@ class AddressViz():
         self.geocoder = GeoCoder()
         self.initial_random_addresses = initial_random_addresses
         self.min_year, self.max_year = min_year, max_year
-        self.show_intro_text()
         self.filter_crime_df_within_radius()
-
-    def show_intro_text(self):
-        st.markdown("#### This platform will allow you to investigate crime around a specific address of interest")
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
@@ -83,8 +79,8 @@ class AddressViz():
             categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         )
         n_crimes = filtered_crime_df_within_radius.shape[0]
-        st.markdown(f'## Address Crime Analysis Report')
-        st.text(f'{n_crimes} Crimes within {self.walking_mins_str} radius of {self.address} between {int(self.min_year)} and {int(self.max_year)}')
+        st.markdown(f'Address: `{self.address}`')
+        st.markdown(f'Crimes: `{n_crimes}` within {self.walking_mins_str} radius, between {int(self.min_year)} and {int(self.max_year)}')
         self.filtered_crime_df_within_radius = filtered_crime_df_within_radius
     
     def viz_close_neighbourhood_rankings(self):

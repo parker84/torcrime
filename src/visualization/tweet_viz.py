@@ -149,4 +149,3 @@ class TweetViz():
             self.filtered_crime_df_within_radius[["Crime", "Address", "Full Text", "Date of Report", "Time of Report"]], 
             height=500
         )
-        st.text("Hover for details")

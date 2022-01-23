@@ -21,11 +21,7 @@ class ClusteringViz():
     def __init__(self, filtered_crime_df):
         self.filtered_crime_df = filtered_crime_df
         self.geolocator = GeoCoder().nomatim_geolocator
-        self.show_intro_text()
         self.filter_to_neighbourhoods()
-
-    def show_intro_text(self):
-        st.markdown("#### Cluster analysis for the crimes chosen within the neighbourhoods chosen")
 
     def filter_to_neighbourhoods(self):
         nbhd_options = st.multiselect(
