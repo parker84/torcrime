@@ -46,7 +46,7 @@ def load_crime_data():
 crime_df, crime_types, crime_locations = load_crime_data()
 st.title("Toronto Crime Dashboard")
 st.markdown(
-    """This is dashboard that enables the user to:
+    """This dashboard enables the user to:
     
     1. Identify crimes occuring near an address
     2. Identify crime trends near an address (year over year, and peak times during the week)
@@ -117,9 +117,9 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
     location_options)]
 
 with st.expander('Address Crime Report', expanded=True):
+    st.markdown("### Address Crime Report")
+    st.markdown(f"This report will enable the user to understand crime within `{walking_mins_str}` radius around the chosen address.")
     if st.button('Create Address Crime Report'):
-        st.markdown("### Address Crime Report")
-        st.markdown(f"This report will enable the user to understand crime within `{walking_mins_str}` radius around the chosen address.")
         address_viz = AddressViz(
             address, walking_mins_str, filtered_crime_df, crime_df.occurrenceyear.min(), 
             crime_df.occurrenceyear.max(), INITIAL_RANDOM_ADDRESSES
@@ -129,18 +129,22 @@ with st.expander('Address Crime Report', expanded=True):
         address_viz.viz_crime_counts_on_map()
         address_viz.show_dataframes()
 with st.expander('Neighbourhood Crime Report', expanded=False):
-    if st.button('Create Neighbourhood Crime Report'):
-        st.markdown("#### Neighbourhood Crime Report")
-        st.markdown("This report will enabel the user to compare crime rates between different neighbourhoods")
-        with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
-                counties = json.load(f)
-        comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
+    st.markdown("#### Neighbourhood Crime Report")
+    st.markdown("This report will enable the user to compare crime rates between different neighbourhoods")
+    with open("./data/processed/Neighbourhood_Crime_Rates_Boundary_File_clean.json", "r") as f:
+        counties = json.load(f)
+    comp_viz = CompareNeighbourhoods(filtered_crime_df, counties)
+    submitted = comp_viz.create_filter_form()
+    if submitted:
+        comp_viz.filter_df_by_time()
         comp_viz.viz()
 with st.expander('Crime Cluster Report', expanded=False):
-    if st.button('Create Crime Cluster Report'):
-        st.markdown("#### Crime Cluster Report")
-        st.markdown("This report will enable the user to understand where the crime clusters are within each neighbourhood of interest.")
-        clust_viz = ClusteringViz(filtered_crime_df)
+    st.markdown("#### Crime Cluster Report")
+    st.markdown("This report will enable the user to understand where the crime clusters are within each neighbourhood of interest.")
+    clust_viz = ClusteringViz(filtered_crime_df)
+    submitted = clust_viz.create_filter_form()
+    if submitted:
+        clust_viz.filter_to_neighbourhoods()
         clust_viz.cluster_crimes_and_remove_outliers()
         clust_viz.set_stats_per_cluster()
         clust_viz.add_addresses_per_cluster()

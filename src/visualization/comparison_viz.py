@@ -13,50 +13,53 @@ class CompareNeighbourhoods():
         self.counties = counties
         model = AvgModel()
         self.predicter = Predict(filtered_crime_df, model)
-        self.filter_df_by_time()
+
+    def create_filter_form(self):
+        with st.form('Neighbourhood Comparison Filters'):
+            self.year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))
+            self.hour_range = st.slider("Hour of Day Range To Investigate", 0, 24, (0, 24))
+            self.days = st.multiselect(
+                label="Days of Week To Investigate",
+                options=[
+                    "Monday", "Tuesday", "Wednesday", "Thursday", 
+                    "Friday", "Saturday", "Sunday"
+                ],
+                default=[
+                    "Monday", "Tuesday", "Wednesday", "Thursday", 
+                    "Friday", "Saturday", "Sunday"
+                ]
+            )
+            self.viz_type = st.selectbox(
+                label="Choose Your Visualization Type",
+                options=[
+                    "Crime Counts Per Neighhourhood", 
+                    "Estimated Probability of Crime Per Hour Per 10k People", 
+                    "Estimated Probability of Crime Per Hour Per km"
+                ],
+                index=0
+            )
+            submitted = st.form_submit_button("Create Neighbourhood Crime Report")
+        return submitted
 
     def filter_df_by_time(self):
-        year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))
-        hour_range = st.slider("Hour of Day Range To Investigate", 0, 24, (0, 24))
-        days = st.multiselect(
-            label="Days of Week To Investigate",
-            options=[
-                "Monday", "Tuesday", "Wednesday", "Thursday", 
-                "Friday", "Saturday", "Sunday"
-            ],
-            default=[
-                "Monday", "Tuesday", "Wednesday", "Thursday", 
-                "Friday", "Saturday", "Sunday"
-            ]
-        )
-
         all_premises = self.filtered_crime_df.premisetype.unique()
         all_crimes = self.filtered_crime_df.crime_type.unique()
         self.predicter.filter_df(
                 premises=all_premises,
                 crimes=all_crimes, 
-                max_year=year_range[1], 
-                min_year=year_range[0], 
-                min_hour=hour_range[0],
-                max_hour=hour_range[1],
-                days_of_week=days
+                max_year=self.year_range[1], 
+                min_year=self.year_range[0], 
+                min_hour=self.hour_range[0],
+                max_hour=self.hour_range[1],
+                days_of_week=self.days
         )
 
     def viz(self):
-        viz_type = st.selectbox(
-            label="Choose Your Visualization Type",
-            options=[
-                "Crime Counts Per Neighhourhood", 
-                "Estimated Probability of Crime Per Hour Per 10k People", 
-                "Estimated Probability of Crime Per Hour Per km"
-            ],
-            index=0
-        )
-        if viz_type == "Crime Counts Per Neighhourhood":
+        if self.viz_type == "Crime Counts Per Neighhourhood":
             self._viz_counts()
-        elif viz_type == "Estimated Probability of Crime Per Hour Per 10k People":
+        elif self.viz_type == "Estimated Probability of Crime Per Hour Per 10k People":
             self._viz_per_10k()
-        elif viz_type == "Estimated Probability of Crime Per Hour Per km":
+        elif self.viz_type == "Estimated Probability of Crime Per Hour Per km":
             self._viz_per_km()
 
     def _viz_counts(self):
