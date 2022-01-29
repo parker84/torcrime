@@ -124,7 +124,7 @@ class AddressViz():
     def viz_crime_counts_on_map(self):
         logger.info("Viz Crime Counts on Maps")
         st.markdown("#### Crime Locations")
-        st.markdown(f"See crime counts by intersection within the {self.walking_mins_str} radius below.")
+        st.markdown(f"See crime counts by intersection and neighbourhood within the {self.walking_mins_str} radius below.")
         #------------viz - counts on maps
         col1, col2 = st.columns(2)
         df_eda_per_address = (
@@ -182,12 +182,12 @@ class AddressViz():
         with col1:
             self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Hour of Day")
             self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Hour of Day", "Type of Crime"])
-        with col2: 
-            self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Year")
-            self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Year", "Type of Crime"])
-        with col3:    
+        with col2:    
             self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Day of Week")
             self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Day of Week", "Type of Crime"])
+        with col3: 
+            self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Year")
+            self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Year", "Type of Crime"])
 
     def show_dataframes(self):
         st.markdown("#### Crime Details")
