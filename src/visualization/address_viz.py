@@ -38,31 +38,19 @@ def calc_distances(filtered_crime_df, lat, lon):
 #-------------AddressViz
 class AddressViz():
     
-    def __init__(self, filtered_crime_df, min_year, max_year, initial_random_addresses):
+    def __init__(self, address, walking_mins_str, filtered_crime_df, min_year, max_year, initial_random_addresses):
+        self.address = address
+        self.walking_mins_str = walking_mins_str
         self.filtered_crime_df = filtered_crime_df
         self.geocoder = GeoCoder()
         self.initial_random_addresses = initial_random_addresses
         self.min_year, self.max_year = min_year, max_year
-        self.show_intro_text()
         self.filter_crime_df_within_radius()
-
-    def show_intro_text(self):
-        st.markdown("#### This platform will allow you to investigate crime around a specific address of interest")
 
     def filter_crime_df_within_radius(self):
         logger.info("Filtering to radius around address")
-        self.address = st.text_input(
-            "Enter the address and district of interest (format: [street #] [street name], Toronto)", 
-            value="Enter Address Here (format: [street #] [street name], Toronto)",
-            help="Format: [street #] [street name], Toronto (Or one of the 6 districts: Old Toronto, East York, Etobicoke, North York, Scarborough, York)"
-        )
-        if self.address == "Enter Address Here (format: [street #] [street name], Toronto)":
+        if self.address == 'Enter Address Here (ex: "1 Dundas St"), Toronto':
             self.address = np.random.choice(self.initial_random_addresses)
-        self.walking_mins_str = st.selectbox(
-            label="Select Walking Distance Radius (Based on the average walking speed of 5km/h)",
-            options=["1 minute", "5 minutes", "10 minutes", "15 minutes", "30 minutes"],
-            index=1
-        )
         hours = int(self.walking_mins_str.split(" ")[0]) / 60
         km_radius = round(hours * 5, 3) # we assume 5 km/h walk speed
         try:
@@ -91,8 +79,8 @@ class AddressViz():
             categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         )
         n_crimes = filtered_crime_df_within_radius.shape[0]
-        st.markdown(f'## Address Crime Analysis Report')
-        st.text(f'{n_crimes} Crimes within {self.walking_mins_str} radius of {self.address} between {int(self.min_year)} and {int(self.max_year)}')
+        st.markdown(f'Address: `{self.address}`')
+        st.markdown(f'Crimes: `{n_crimes}` within {self.walking_mins_str} radius, between {int(self.min_year)} and {int(self.max_year)}')
         self.filtered_crime_df_within_radius = filtered_crime_df_within_radius
     
     def viz_close_neighbourhood_rankings(self):
@@ -108,9 +96,9 @@ class AddressViz():
         )
         st.markdown(
             f"""
-            #### Ranking of Neighbourhoods Close to You
-            The Worst Neighbourhood In Your Radius is in the **{round(close_rankings['Neighbourhood Percentile of Crime'].iloc[0])}th 
-            Percentile** For Amount of Crime (100th being the neighbourhood with the most crime)
+            #### Neighbourhood Rankings
+            The Worst Neighbourhood within a {self.walking_mins_str} radius is in the **{round(close_rankings['Neighbourhood Percentile of Crime'].iloc[0])}th 
+            Percentile** For Amount of Crime
             """
         )
         st.dataframe(
@@ -135,8 +123,10 @@ class AddressViz():
 
     def viz_crime_counts_on_map(self):
         logger.info("Viz Crime Counts on Maps")
-        st.markdown("#### Visualizing Crimes Geographically")
+        st.markdown("#### Crime Locations")
+        st.markdown(f"See crime counts by intersection and neighbourhood within the {self.walking_mins_str} radius below.")
         #------------viz - counts on maps
+        col1, col2 = st.columns(2)
         df_eda_per_address = (
             self.filtered_crime_df_within_radius
             .assign(
@@ -148,52 +138,60 @@ class AddressViz():
             .agg(["max", "size"])
             .reset_index().rename(columns={"max":"neighbourhood", "size": "Number of Crimes"})
         )
-        plot_color = st.selectbox(
-            label="Colour the Graph Below by:",
-            options=["Neighbourhood", "Number of Crimes"],
-            index=0
-        )
-        p = ggplot(
-            df_eda_per_address.rename(columns={"neighbourhood": "Neighbourhood"}),
-            aes(
-                "longitude", "latitude", 
-                size="Number of Crimes", 
-                fill=plot_color,
-                color=plot_color
-            )
-        ) + geom_point() + ggtitle(f'Crimes within {self.walking_mins_str} radius of {self.address}')
-        st.pyplot(p.draw())
-        st.text("Crimes On Toronto Streets (you can zoom/drag)")
-        st.pydeck_chart(pdk.Deck(
-            initial_view_state=pdk.ViewState(
-                latitude=self.lat,
-                longitude=self.lon,
-                zoom=14,
-            ),
-            layers=[
-                pdk.Layer(
-                    'HeatmapLayer',
-                    self.filtered_crime_df_within_radius[["lat", "lon"]],
-                    get_position=['lon', 'lat'],
-                    auto_highlight=True,
-                    get_radius=5,
-                    get_fill_color='[180, 0, 200, 140]',
+        with col1:
+            # plot_color = st.selectbox(
+            #     label="Colour the Graph Below by:",
+            #     options=["Neighbourhood", "Number of Crimes"],
+            #     index=0
+            # ) # commented out bc its erroring with the new button to trigger this
+            plot_color = 'Neighbourhood'
+            p = ggplot(
+                df_eda_per_address.rename(columns={"neighbourhood": "Neighbourhood"}),
+                aes(
+                    "longitude", "latitude", 
+                    size="Number of Crimes", 
+                    fill=plot_color,
+                    color=plot_color
+                )
+            ) + geom_point() + ggtitle(f'Crimes Counts By Intersection')
+            st.pyplot(p.draw())
+        with col2:
+            st.text("Crimes On Toronto Streets (you can zoom/drag)")
+            st.pydeck_chart(pdk.Deck(
+                initial_view_state=pdk.ViewState(
+                    latitude=self.lat,
+                    longitude=self.lon,
+                    zoom=14,
                 ),
-            ],
-        ))
+                layers=[
+                    pdk.Layer(
+                        'HeatmapLayer',
+                        self.filtered_crime_df_within_radius[["lat", "lon"]],
+                        get_position=['lon', 'lat'],
+                        auto_highlight=True,
+                        get_radius=5,
+                        get_fill_color='[180, 0, 200, 140]',
+                    ),
+                ],
+            ))
 
     def viz_eda_plots(self):
-        st.markdown("#### Visualizing Crimes By Time")
-        self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Hour of Day")
-        self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Year")
-        self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Day of Week")
-        self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Hour of Day", "Type of Crime"])
-        self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Year", "Type of Crime"])
-        self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Day of Week", "Type of Crime"])
+        st.markdown("#### Crime Trends")
+        st.markdown(f"See peak times throughout the week/day and see year over trends within the {self.walking_mins_str} radius below.")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Hour of Day")
+            self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Hour of Day", "Type of Crime"])
+        with col2:    
+            self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Day of Week")
+            self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Day of Week", "Type of Crime"])
+        with col3: 
+            self._groupby_var_and_line_chart(self.filtered_crime_df_within_radius, "Year")
+            self._groupby_2_vars_and_line_chart(self.filtered_crime_df_within_radius, ["Year", "Type of Crime"])
 
     def show_dataframes(self):
-        st.markdown("#### Crime Details Within Radius")
-        st.text(f'Crimes within {self.walking_mins_str} radius of {self.address} between {int(self.min_year)} and {int(self.max_year)}')
+        st.markdown("#### Crime Details")
+        st.markdown(f"See details around each crime within the {self.walking_mins_str} radius below.")
         self.filtered_crime_df_within_radius["Day of Week"] = (
             self.filtered_crime_df_within_radius["Day of Week"].astype(str)
         )
@@ -213,7 +211,7 @@ class AddressViz():
         p = ggplot(
             df_eda,
             aes(var, "Number of Crimes", group=1)
-        ) + geom_line() + geom_point() + ggtitle(f'Crimes per {var} within {self.walking_mins_str} radius of {self.address}')
+        ) + geom_line() + geom_point() + ggtitle(f'Crimes per {var}')
         st.pyplot(p.draw())
 
     def _groupby_2_vars_and_line_chart(self, df, variables):
@@ -225,7 +223,7 @@ class AddressViz():
         p = ggplot(
             df_eda,
             aes(variables[0], "Number of Crimes", group=variables[1], color=variables[1])
-        ) + geom_line() + geom_point() + ggtitle(f'Crimes within {self.walking_mins_str} radius of {self.address}')
+        ) + geom_line() + geom_point() + ggtitle(f'Crimes per {variables[0]} and {variables[1]}')
         st.pyplot(p.draw())
 
     def _get_neighbourhood_rankings(self):

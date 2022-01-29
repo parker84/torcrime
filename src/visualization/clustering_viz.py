@@ -21,36 +21,36 @@ class ClusteringViz():
     def __init__(self, filtered_crime_df):
         self.filtered_crime_df = filtered_crime_df
         self.geolocator = GeoCoder().nomatim_geolocator
-        self.show_intro_text()
-        self.filter_to_neighbourhoods()
 
-    def show_intro_text(self):
-        st.markdown("#### Cluster analysis for the crimes chosen within the neighbourhoods chosen")
+    def create_filter_form(self):
+        with st.form('Clustering Filters'):
+            self.nbhd_options = st.multiselect(
+                label="Choose Neighbourhoods",
+                options=self.filtered_crime_df.neighbourhood.unique().tolist(),
+                default=[
+                    'Moss Park (73)',
+                    'Church-Yonge Corridor (75)',
+                    'Bay Street Corridor (76)',
+                    'Kensington-Chinatown (78)',
+                    'Waterfront Communities-The Island (77)'
+                ]
+            )
+            self.min_cluster_size = st.selectbox(
+                label="Choose Minimum Cluster Size For hdbscan",
+                options=[10, 50, 100, 200, 400],
+                index=2
+            )
+            submitted = st.form_submit_button("Create Crime Cluster Report")
+        return submitted
+
 
     def filter_to_neighbourhoods(self):
-        nbhd_options = st.multiselect(
-            label="Choose Neighbourhoods",
-            options=self.filtered_crime_df.neighbourhood.unique().tolist(),
-            default=[
-                'Moss Park (73)',
-                'Church-Yonge Corridor (75)',
-                'Bay Street Corridor (76)',
-                'Kensington-Chinatown (78)',
-                'Waterfront Communities-The Island (77)'
-            ]
-        )
-        self.filtered_crime_df_to_nbhds = self.filtered_crime_df[self.filtered_crime_df.neighbourhood.isin(nbhd_options)]
+        self.filtered_crime_df_to_nbhds = self.filtered_crime_df[self.filtered_crime_df.neighbourhood.isin(self.nbhd_options)]
     
     def cluster_crimes_and_remove_outliers(self):
         logger.info("Clustering")
-        min_cluster_size = st.selectbox(
-            label="Choose Minimum Cluster Size For hdbscan",
-            options=[10, 50, 100, 200, 400],
-            index=2
-        )
-
         clusterer = hdbscan.HDBSCAN(
-            min_cluster_size=min_cluster_size
+            min_cluster_size=self.min_cluster_size
         )
         clusterer.fit(self.filtered_crime_df_to_nbhds[["lon", "lat"]])
         self.filtered_crime_df_to_nbhds["cluster"] = clusterer.labels_
