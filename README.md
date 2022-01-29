@@ -24,9 +24,9 @@ export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
 virtualenv venv
 source ./venv/bin/activate
 # install the requirements
-pip install -r ./requirements.txt
+./venv/bin/python -m pip install -r ./requirements.txt
 # run the streamlit app:
-streamlit run ./app.py
+./venv/bin/python -m streamlit run ./app.py
 # running the crime app
 python3 ./alert_app.py
 ```
