@@ -118,7 +118,7 @@ filtered_crime_df = filtered_crime_df[filtered_crime_df.premisetype.isin(
 
 with st.expander('Address Crime Report', expanded=True):
     st.markdown("### Address Crime Report")
-    st.markdown(f"This report will enable the user to view historical crime trends within `{walking_mins_str}` radius around the chosen address.")
+    st.markdown(f"This report will enable the user to view historical crime trends.")
     if st.button('Create Address Crime Report'):
         address_viz = AddressViz(
             address, walking_mins_str, filtered_crime_df, crime_df.occurrenceyear.min(), 

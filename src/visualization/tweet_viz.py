@@ -145,7 +145,8 @@ class TweetViz():
             y="Crime"
         )
         st.altair_chart(bars, use_container_width=True)
-        st.dataframe(
-            self.filtered_crime_df_within_radius[["Crime", "Address", "Full Text", "Date of Report", "Time of Report"]], 
-            height=500
-        )
+        viz_df = self.filtered_crime_df_within_radius[
+            ["Crime", "Address", "Full Text", "Date of Report", "Time of Report"]
+        ]
+        viz_df["Time of Report"] = viz_df["Time of Report"].astype(str)
+        st.table(viz_df)
