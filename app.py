@@ -12,7 +12,8 @@ from src.visualization.comparison_viz import CompareNeighbourhoods
 from src.visualization.tweet_viz import TweetViz, ALERTING_CRIME_OPTIONS, ALERTING_CRIME_DEFAULTS
 import json
 import streamlit_analytics
-st.set_page_config(layout='wide')
+cn_tower_image = Image.open('./assets/FlaviConTC.png')
+st.set_page_config(layout='wide', page_icon=cn_tower_image, page_title='TorCrime Dashboard')
 
 #----------------helpers
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ CITY_REGIONS = [
 @st.cache
 def load_crime_data():
     crime_df = pd.read_csv("./data/processed/crime_data.csv").rename(columns={"long": "lon"})
+    crime_df['crime_type'] = crime_df['crime_type'].replace('Theft Over', 'Theft Over $5k')
     crime_types = crime_df.crime_type.unique().tolist()
     crime_locations = crime_df.premisetype.unique().tolist()
     return crime_df, crime_types, crime_locations
@@ -56,8 +58,7 @@ st.markdown(
 )
 st.markdown("**To Begin:** Enter an address in the sidebar of this dashboard (press the arrow in the top left on mobile).")
 st.sidebar.title('TorCrime')
-image = Image.open('./assets/FlaviConTC.png')
-st.sidebar.image(image, width=100)
+st.sidebar.image(cn_tower_image, width=100)
 
 #---------------sidebar
 street_name_and_number = st.sidebar.text_input(
