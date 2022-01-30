@@ -79,8 +79,8 @@ class AddressViz():
             categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         )
         n_crimes = filtered_crime_df_within_radius.shape[0]
-        st.markdown(f'Address: `{self.address}`')
-        st.markdown(f'Crimes: `{n_crimes}` within {self.walking_mins_str} radius, between {int(self.min_year)} and {int(self.max_year)}')
+        st.metric(label='Crimes', value=n_crimes)
+        st.markdown(f'within `{self.walking_mins_str}` radius of `{self.address}` between {int(self.min_year)} and {int(self.max_year)}')
         self.filtered_crime_df_within_radius = filtered_crime_df_within_radius
     
     def viz_close_neighbourhood_rankings(self):
