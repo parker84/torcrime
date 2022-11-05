@@ -29,7 +29,7 @@ class EmailUsers():
         """[summary]
 
         Args:
-            sel_user_df (pandas dataframe): isolated to users within radius, and having the columns: ["first_name", "email"]
+            sel_user_df (pandas dataframe): isolated to users within radius, and having the columns: ["email"]
             tweet (row of a pandas dataframe): with the following columns: ["text", "crime", "address", "created_at"]
         """
         logger.info("Sending emails")
@@ -37,7 +37,7 @@ class EmailUsers():
         tweet["created_at_est"] = pd.to_datetime(tweet["created_at"]).tz_convert("EST")
         for ix, row in tqdm(sel_user_df.iterrows()):
             contents = [
-                f"Hi {row.first_name},\n",
+                f"Hi 👋🏻,\n",
                 "There has been a crime reported near your address.\n\n",
                 f"Crime: {tweet.crime}\n",
                 f"Location of Crime: {tweet.address}\n",

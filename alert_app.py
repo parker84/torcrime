@@ -5,6 +5,8 @@ import coloredlogs
 import logging
 import os
 import time
+from src.utils.users import Users
+users = Users()
 
 #--------------logging setup
 logger = logging.getLogger(__name__)
@@ -19,8 +21,12 @@ def get_user_df_and_send_emails(tweet_df):
     builder = BuildUserDf()
     builder.get_and_set_customer_df()
     builder.get_and_set_order_df()
+    shop_user_df = builder.build_user_df()
+    app_user_df = users.get_users()
+    user_df = shop_user_df[['email', 'tor_address', 'km_radius', 'lat', 'lon']].append(
+        app_user_df[['email', 'tor_address', 'km_radius', 'lat', 'lon']]
+    )
     for ix, row in tweet_df.iterrows():
-        user_df = builder.build_user_df()
         if user_df.shape[0] > 0:
             email_users = EmailUsers(user_df)
             sel_users = email_users.filter_to_users_near_the_event(row.lat, row.lon)

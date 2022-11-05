@@ -15,9 +15,12 @@ class CompareNeighbourhoods():
         self.predicter = Predict(filtered_crime_df, model)
 
     def create_filter_form(self):
-        with st.form('Neighbourhood Comparison Filters'):
-            self.year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))
-            self.hour_range = st.slider("Hour of Day Range To Investigate", 0, 24, (0, 24))
+        with st.expander("Advanced Parameters", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                self.year_range = st.slider("Year Range To Investigate", 2014, 2020, (2014, 2020))
+            with col2:
+                self.hour_range = st.slider("Hour of Day Range To Investigate", 0, 24, (0, 24))
             self.days = st.multiselect(
                 label="Days of Week To Investigate",
                 options=[
@@ -29,6 +32,7 @@ class CompareNeighbourhoods():
                     "Friday", "Saturday", "Sunday"
                 ]
             )
+        with st.form('Neighbourhood Comparison Filters'):
             self.viz_type = st.selectbox(
                 label="Choose Your Visualization Type",
                 options=[

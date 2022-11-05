@@ -19,7 +19,7 @@ Dash Dashboard:
 ### Running The Apps Locally (using 2014-2019 data):
 ```sh
 # set your python path to the top of the repo
-export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
+export PYTHONPATH="/Users/brydonparker/Documents/Projects/side_projects/torcrime"
 # make a virtual env and activate it (mac)
 virtualenv venv
 source ./venv/bin/activate
@@ -34,7 +34,7 @@ python3 ./alert_app.py
 ### Running the tests:
 ```sh
 # set your python path to the top of the repo
-export PYTHONPATH="/Users/bryparker/Documents/projects/toronto/toronto-crime"
+export PYTHONPATH="/Users/brydonparker/Documents/Projects/side_projects/torcrime"
 # run all tests to ensure its working properly:
 python3 -m unittest discover ./tests/
 # running all pytests (for the tweet system)

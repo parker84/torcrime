@@ -130,8 +130,7 @@ class TweetViz():
         )[CRIME_COLS]
         logger.info("Filtered to radius around address")
     
-    def viz(self):
-        st.markdown(f"Address: `{self.address}`")
+    def viz(self, show_chart=False):
         crime_counts = pd.DataFrame(
             self.filtered_crime_df_within_radius.drop_duplicates(subset=["Crime", "Address", "Date of Report"])
             ["Crime"].value_counts().reset_index()
@@ -140,13 +139,14 @@ class TweetViz():
                 "index": "Crime"
             })
         )
-        bars = alt.Chart(crime_counts).mark_bar().encode(
-            x='Number of Alerts',
-            y="Crime"
-        )
-        st.altair_chart(bars, use_container_width=True)
+        if show_chart:
+            bars = alt.Chart(crime_counts).mark_bar().encode(
+                x='Number of Alerts',
+                y="Crime"
+            )
+            st.altair_chart(bars, use_container_width=True)
         viz_df = self.filtered_crime_df_within_radius[
             ["Crime", "Address", "Full Text", "Date of Report", "Time of Report"]
         ]
         viz_df["Time of Report"] = viz_df["Time of Report"].astype(str)
-        st.table(viz_df)
+        st.dataframe(viz_df)

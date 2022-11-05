@@ -9,8 +9,7 @@ def user_df():
         "lat": [43.60, 50, 43.63], 
         "lon": [-79.35, -90, -79.55], 
         "km_radius": [3, 3, 3], 
-        "email": ["torcrime@gmail.com"] * 3,
-        "first_name": ["Jane"] * 3
+        "email": ["torcrime@gmail.com"] * 3
     })
     return user_df
 

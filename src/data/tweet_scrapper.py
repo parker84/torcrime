@@ -6,8 +6,10 @@ import pandas as pd
 from sqlalchemy import create_engine
 from tqdm import tqdm
 import datetime
+from src.visualization.tweet_viz import CRIME_REGEX, ALERTING_CRIME_DEFAULTS
 import coloredlogs
 import logging
+import re
 import pytz
 import os
 import time
@@ -92,9 +94,14 @@ class TweetScrapper():
         lines = text.split("\n")
         if lines[0].endswith(":") or lines[0].lower().endswith("update"):
             dict_tweet["address"] = lines[1].replace("&amp;", "and").replace("+", "and") + ", Toronto"
-            dict_tweet["crime"] = lines[0].split(":")[0].lower()
+            dict_tweet["raw_crime"] = lines[0].split(":")[0].lower()
             dict_tweet["is_update"] = lines[0].lower().endswith("update")
-            dict_tweet["is_crime"] = True
+            dict_tweet["crime"] = dict_tweet["raw_crime"]
+            for regex in CRIME_REGEX:
+                dict_tweet["crime"] = re.sub(f".*{regex}.*", CRIME_REGEX[regex], dict_tweet["crime"])
+            dict_tweet["is_crime"] = dict_tweet["crime"].lower() in [
+                crime.lower() for crime in ALERTING_CRIME_DEFAULTS
+            ]
             if 'missing' not in dict_tweet["crime"].lower(): # missing has a weird format, and always results in parsing errors
                 try:
                     location = self.geocoder.geocode(dict_tweet["address"])
