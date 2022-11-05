@@ -1,1 +1,1 @@
-web: sh st_setup.sh && streamlit run app.py & python3 ./alert_app.py & wait -n
+web: sh st_setup.sh && streamlit run 🔪Crime_Reports.py & python3 ./alert_app.py & wait -n
