@@ -6,7 +6,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from tqdm import tqdm
 import datetime
-from src.visualization.tweet_viz import CRIME_REGEX, ALERTING_CRIME_DEFAULTS
+from src.constants import CRIME_REGEX, ALERTING_CRIME_DEFAULTS
 import coloredlogs
 import logging
 import re

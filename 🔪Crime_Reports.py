@@ -6,7 +6,8 @@ import os
 import time
 from PIL import Image
 
-from src.visualization.tweet_viz import TweetViz, ALERTING_CRIME_OPTIONS, ALERTING_CRIME_DEFAULTS
+from src.visualization.tweet_viz import TweetViz
+from src.constants import ALERTING_CRIME_OPTIONS, ALERTING_CRIME_DEFAULTS
 from src.utils.users import Users
 import streamlit_analytics
 cn_tower_image = Image.open('./assets/FlaviConTC.png')
