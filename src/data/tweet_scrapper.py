@@ -28,7 +28,7 @@ class TweetScrapper():
         auth = tweepy.OAuthHandler(config("CONSUMER_API_KEY"), config("API_SECRET_KEY"))
         auth.set_access_token(config("ACCESS_TOKEN"), config("ACCESS_TOKEN_SECRET"))
         self.api = tweepy.API(auth)
-        self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
+        self.engine = create_engine(config('DATABASE_URL'))
         self.est = pytz.timezone('US/Eastern')
         self.utc = pytz.utc
         self.geocoder = GeoCoder()

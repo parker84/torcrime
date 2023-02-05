@@ -20,7 +20,7 @@ from src.constants import (
 #------------------Initialize 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"), logger=logger)
-engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
+engine = create_engine(config('DATABASE_URL'))
 
 #-------------------Load data
 crime_tweets = pd.read_sql(

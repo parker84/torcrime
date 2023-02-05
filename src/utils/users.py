@@ -10,7 +10,7 @@ class Users():
     def __init__(self):
         self.geocoder = GeoCoder()
         self.user_table = 'users'
-        self.engine = create_engine(f'postgresql://{config("DB_USER")}:{config("DB_PWD")}@{config("DB_HOST")}:5432/{config("DB")}')
+        self.engine = create_engine(config('DATABASE_URL'))
         self.conn = self.engine.connect()
 
     def create_user(self, email, address):
