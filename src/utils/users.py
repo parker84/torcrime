@@ -3,6 +3,17 @@ from sqlalchemy import create_engine
 from decouple import config
 from datetime import datetime
 from src.utils.geocoder import GeoCoder
+import coloredlogs
+import logging
+import os
+
+#--------------logging setup
+logger = logging.getLogger(__name__)
+coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"))
+fh = logging.FileHandler('logs/alert_app.log')
+logger.addHandler(fh)
+fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 
 
 class Users():
