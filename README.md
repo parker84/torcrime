@@ -1,6 +1,11 @@
 TorCrime
 ==============================
 
+Find the latest version of this here:
+- Repo: https://github.com/parker84/toronto-crime-dashboard
+- Dashboard: https://torcrime.streamlit.app/
+
+
 A repo that builds a dashboard investigate crime in your neighbourhood.
 https://torcrime.herokuapp.com/
 
